@@ -91,6 +91,7 @@ export function Dashboard() {
     { value: 'breakfast', label: 'Breakfast', icon: '🌅' },
     { value: 'lunch', label: 'Lunch', icon: '☀️' },
     { value: 'dinner', label: 'Dinner', icon: '🌙' },
+    { value: 'snacks', label: 'Snacks', icon: '🍪' },
   ];
 
   return (

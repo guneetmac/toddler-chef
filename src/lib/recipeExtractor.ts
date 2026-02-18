@@ -6,6 +6,7 @@ export interface ExtractedRecipe {
   staple_tags: string[];
   one_sentence_summary: string;
   source_url: string;
+  steps: string[];
 }
 
 const COMMON_STAPLES = [
@@ -128,10 +129,22 @@ function determineDifficultyTier(totalTime: number): 'Quick' | 'Medium' | 'Proje
 }
 
 function generateRecipeName(text: string): string {
-  const firstLine = text.split('\n')[0].trim();
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
-  if (firstLine && firstLine.length > 5 && firstLine.length < 100) {
-    return firstLine.replace(/^[#*]*([\w\s]*)/, '$1').trim();
+  for (let i = 0; i < Math.min(3, lines.length); i++) {
+    const line = lines[i];
+    const cleaned = line.replace(/^[#*🍳🥗🍽️👶🧒👧👦💚✨🌟⭐️]+\s*/, '')
+                       .replace(/[!]+$/, '')
+                       .trim();
+
+    if (cleaned &&
+        cleaned.length >= 5 &&
+        cleaned.length <= 100 &&
+        !cleaned.toLowerCase().includes('ingredients') &&
+        !cleaned.toLowerCase().includes('instructions') &&
+        !cleaned.match(/^\d+\s*(minute|min|hour|hr)/i)) {
+      return cleaned;
+    }
   }
 
   const keywords = ['toddler', 'recipe', 'easy', 'quick', 'baby', 'finger food', 'bite'];
@@ -154,13 +167,65 @@ function generateSummary(recipeName: string, ingredients: Array<{ item: string; 
   return `A ${healthBenefit} ${recipeName.toLowerCase()} featuring ${topIngredients}.`;
 }
 
-export function extractRecipe(url: string, scrapedText: string, category: 'breakfast' | 'lunch' | 'dinner'): ExtractedRecipe {
+function extractSteps(text: string): string[] {
+  const lines = text.split('\n');
+  const steps: string[] = [];
+  let inInstructionsSection = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (!trimmed) continue;
+
+    if (/^(instructions?|directions?|steps?|method|how to make)/i.test(trimmed)) {
+      inInstructionsSection = true;
+      continue;
+    }
+
+    if (/^ingredients?/i.test(trimmed)) {
+      inInstructionsSection = false;
+      continue;
+    }
+
+    if (inInstructionsSection || /^\d+[\.)]\s/.test(trimmed)) {
+      const cleanedStep = trimmed
+        .replace(/^\d+[\.)]\s*/, '')
+        .replace(/^[•*-]\s*/, '')
+        .trim();
+
+      if (cleanedStep.length > 10 && !cleanedStep.match(/^\d+\s*(cup|tbsp|tsp|oz|g|ml)/i)) {
+        steps.push(cleanedStep);
+      }
+    }
+  }
+
+  if (steps.length === 0) {
+    const sentencePattern = /[A-Z][^.!?]*[.!?]/g;
+    const sentences = text.match(sentencePattern) || [];
+
+    for (const sentence of sentences) {
+      const lower = sentence.toLowerCase();
+      if ((lower.includes('cook') || lower.includes('heat') ||
+           lower.includes('add') || lower.includes('mix') ||
+           lower.includes('stir') || lower.includes('pour') ||
+           lower.includes('whisk') || lower.includes('bake')) &&
+          sentence.length > 15) {
+        steps.push(sentence.trim());
+      }
+    }
+  }
+
+  return steps.length > 0 ? steps : ['Follow the instructions from the original recipe source.'];
+}
+
+export function extractRecipe(url: string, scrapedText: string, category: 'breakfast' | 'lunch' | 'dinner' | 'snacks'): ExtractedRecipe {
   const recipeName = generateRecipeName(scrapedText);
   const totalTime = extractTimeInMinutes(scrapedText);
   const ingredients = extractIngredients(scrapedText);
   const staples = findStapleTags(scrapedText, ingredients);
   const difficultyTier = determineDifficultyTier(totalTime);
   const summary = generateSummary(recipeName, ingredients, staples);
+  const steps = extractSteps(scrapedText);
 
   return {
     recipe_name: recipeName,
@@ -169,6 +234,7 @@ export function extractRecipe(url: string, scrapedText: string, category: 'break
     ingredients,
     staple_tags: staples,
     one_sentence_summary: summary,
-    source_url: url
+    source_url: url,
+    steps
   };
 }

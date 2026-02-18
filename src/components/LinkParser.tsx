@@ -64,7 +64,7 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
 
     try {
       const scrapedContent = await fetchContentFromEdgeFunction(url);
-      const category = (['breakfast', 'lunch', 'dinner'] as const)[Math.floor(Math.random() * 3)];
+      const category = (['breakfast', 'lunch', 'dinner', 'snacks'] as const)[Math.floor(Math.random() * 4)];
 
       const extracted = extractRecipe(url, scrapedContent, category);
 
@@ -79,6 +79,7 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
           difficulty_tier: extracted.difficulty_tier,
           one_sentence_summary: extracted.one_sentence_summary,
           staple_tags: extracted.staple_tags,
+          steps: extracted.steps,
           category
         }]);
 
@@ -108,7 +109,7 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
     setIsLoading(true);
 
     try {
-      const category = (['breakfast', 'lunch', 'dinner'] as const)[Math.floor(Math.random() * 3)];
+      const category = (['breakfast', 'lunch', 'dinner', 'snacks'] as const)[Math.floor(Math.random() * 4)];
       const mockUrl = `https://manual-entry.local/${Date.now()}`;
 
       const extracted = extractRecipe(mockUrl, manualContent, category);
@@ -124,6 +125,7 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
           difficulty_tier: extracted.difficulty_tier,
           one_sentence_summary: extracted.one_sentence_summary,
           staple_tags: extracted.staple_tags,
+          steps: extracted.steps,
           category
         }]);
 

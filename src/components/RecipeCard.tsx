@@ -10,6 +10,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
     breakfast: '🌅',
     lunch: '☀️',
     dinner: '🌙',
+    snacks: '🍪',
   };
 
   const timeBadgeColor = recipe.prep_time <= 10
@@ -86,6 +87,24 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           </div>
         )}
 
+        {recipe.steps && recipe.steps.length > 0 && (
+          <div className="bg-blue-50 rounded-xl p-4 mb-4">
+            <h4 className="text-sm font-bold text-blue-800 mb-3 uppercase tracking-wide">
+              Instructions
+            </h4>
+            <ol className="space-y-2">
+              {recipe.steps.map((step, index) => (
+                <li key={index} className="flex gap-3 text-sm text-gray-800">
+                  <span className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                    {index + 1}
+                  </span>
+                  <span className="leading-relaxed pt-0.5">{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
         <a
           href={recipe.url}
           target="_blank"
@@ -93,7 +112,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           className="inline-flex items-center gap-2 text-base text-warmOrange-600 hover:text-warmOrange-700 font-bold hover:gap-3 transition-all"
         >
           <ExternalLink size={18} />
-          View Full Recipe
+          View Original Post
         </a>
       </div>
     </div>
