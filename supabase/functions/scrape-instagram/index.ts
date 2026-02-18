@@ -34,32 +34,53 @@ async function scrapeInstagramContent(url: string): Promise<string> {
 
     let recipeText = "";
 
-    const captionMatch = html.match(/"caption":"(.*?)"/);
-    if (captionMatch) {
-      recipeText = captionMatch[1]
-        .replace(/\\n/g, "\n")
-        .replace(/\\"/g, '"')
-        .replace(/\\u([0-9a-fA-F]{4})/g, (_, code) => String.fromCharCode(parseInt(code, 16)));
+    const patterns = [
+      /"edge_media_to_caption":\{"edges":\[\{"node":\{"text":"(.*?)"\}\}\]\}/,
+      /"caption":"(.*?)"/,
+      /"text":"((?:[^"\\]|\\.)*)"/g,
+    ];
+
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (match && match[1] && match[1].length > 50) {
+        recipeText = match[1]
+          .replace(/\\n/g, "\n")
+          .replace(/\\"/g, '"')
+          .replace(/\\u([0-9a-fA-F]{4})/g, (_, code) => String.fromCharCode(parseInt(code, 16)))
+          .replace(/\\r/g, "")
+          .replace(/\\\\/g, "\\");
+        break;
+      }
     }
 
-    const titleMatch = html.match(/<meta property="og:title" content="(.*?)"/);
-    if (titleMatch && !recipeText) {
-      recipeText = titleMatch[1];
+    if (!recipeText) {
+      const allTextMatches = html.matchAll(/"text":"((?:[^"\\]|\\.)*)"/g);
+      const texts = Array.from(allTextMatches).map(m =>
+        m[1]
+          .replace(/\\n/g, "\n")
+          .replace(/\\"/g, '"')
+          .replace(/\\u([0-9a-fA-F]{4})/g, (_, code) => String.fromCharCode(parseInt(code, 16)))
+      );
+
+      const longestText = texts.reduce((longest, current) =>
+        current.length > longest.length ? current : longest, ""
+      );
+
+      if (longestText.length > 50) {
+        recipeText = longestText;
+      }
     }
 
-    const descriptionMatch = html.match(/<meta property="og:description" content="(.*?)"/);
-    if (descriptionMatch) {
-      recipeText += "\n\n" + descriptionMatch[1];
+    const titleMatch = html.match(/<meta property="og:title" content="([^"]*)"/);
+    if (titleMatch && titleMatch[1] && !recipeText) {
+      recipeText = titleMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&');
     }
 
-    const jsonLdMatch = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s);
-    if (jsonLdMatch) {
-      try {
-        const jsonData = JSON.parse(jsonLdMatch[1]);
-        if (jsonData.articleBody) {
-          recipeText += "\n\n" + jsonData.articleBody;
-        }
-      } catch {
+    const descriptionMatch = html.match(/<meta property="og:description" content="([^"]*)"/);
+    if (descriptionMatch && descriptionMatch[1]) {
+      const desc = descriptionMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+      if (desc.length > 50 && (!recipeText || recipeText.length < desc.length)) {
+        recipeText = desc;
       }
     }
 
