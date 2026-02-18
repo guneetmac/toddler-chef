@@ -34,6 +34,8 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
       }
 
       const data = await response.json();
+      console.log('Scraped content length:', data.content?.length);
+      console.log('First 200 chars:', data.content?.substring(0, 200));
 
       if (data.success && data.content) {
         return data.content;

@@ -27,29 +27,48 @@ async function scrapeInstagramContent(url: string): Promise<string> {
     });
 
     if (!response.ok) {
+      console.error(`Failed to fetch: ${response.status}`);
       throw new Error(`Failed to fetch: ${response.status}`);
     }
 
     const html = await response.text();
+    console.log('HTML length:', html.length);
 
     let recipeText = "";
 
-    const patterns = [
-      /"edge_media_to_caption":\{"edges":\[\{"node":\{"text":"(.*?)"\}\}\]\}/,
-      /"caption":"(.*?)"/,
-      /"text":"((?:[^"\\]|\\.)*)"/g,
-    ];
+    const scriptMatch = html.match(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/);
+    if (scriptMatch) {
+      try {
+        const jsonData = JSON.parse(scriptMatch[1]);
+        console.log('Found JSON-LD data');
+        if (jsonData.articleBody) {
+          recipeText = jsonData.articleBody;
+          console.log('Found articleBody:', recipeText.substring(0, 100));
+        }
+      } catch (e) {
+        console.log('Failed to parse JSON-LD:', e);
+      }
+    }
 
-    for (const pattern of patterns) {
-      const match = html.match(pattern);
-      if (match && match[1] && match[1].length > 50) {
-        recipeText = match[1]
-          .replace(/\\n/g, "\n")
-          .replace(/\\"/g, '"')
-          .replace(/\\u([0-9a-fA-F]{4})/g, (_, code) => String.fromCharCode(parseInt(code, 16)))
-          .replace(/\\r/g, "")
-          .replace(/\\\\/g, "\\");
-        break;
+    if (!recipeText) {
+      const patterns = [
+        /"edge_media_to_caption":\{"edges":\[\{"node":\{"text":"((?:[^"\\]|\\[\s\S])*)"\}\}\]\}/,
+        /"caption":\{"text":"((?:[^"\\]|\\[\s\S])*)"\}/,
+        /"caption":"((?:[^"\\]|\\[\s\S])*)"/,
+      ];
+
+      for (const pattern of patterns) {
+        const match = html.match(pattern);
+        if (match && match[1] && match[1].length > 50) {
+          recipeText = match[1]
+            .replace(/\\n/g, "\n")
+            .replace(/\\"/g, '"')
+            .replace(/\\u([0-9a-fA-F]{4})/g, (_, code) => String.fromCharCode(parseInt(code, 16)))
+            .replace(/\\r/g, "")
+            .replace(/\\\\/g, "\\");
+          console.log('Found via pattern, length:', recipeText.length);
+          break;
+        }
       }
     }
 
@@ -62,18 +81,21 @@ async function scrapeInstagramContent(url: string): Promise<string> {
           .replace(/\\u([0-9a-fA-F]{4})/g, (_, code) => String.fromCharCode(parseInt(code, 16)))
       );
 
+      console.log('Found text matches:', texts.length);
       const longestText = texts.reduce((longest, current) =>
         current.length > longest.length ? current : longest, ""
       );
 
       if (longestText.length > 50) {
         recipeText = longestText;
+        console.log('Using longest text, length:', recipeText.length);
       }
     }
 
     const titleMatch = html.match(/<meta property="og:title" content="([^"]*)"/);
     if (titleMatch && titleMatch[1] && !recipeText) {
       recipeText = titleMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+      console.log('Using og:title');
     }
 
     const descriptionMatch = html.match(/<meta property="og:description" content="([^"]*)"/);
@@ -81,8 +103,11 @@ async function scrapeInstagramContent(url: string): Promise<string> {
       const desc = descriptionMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&');
       if (desc.length > 50 && (!recipeText || recipeText.length < desc.length)) {
         recipeText = desc;
+        console.log('Using og:description');
       }
     }
+
+    console.log('Final recipe text length:', recipeText.length);
 
     if (!recipeText || recipeText.length < 20) {
       return `Recipe from Instagram\n\nIngredients:\n• Check the original post for details\n\nTime: 15 minutes`;
