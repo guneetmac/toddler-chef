@@ -1,0 +1,101 @@
+import { Clock, ExternalLink } from 'lucide-react';
+import type { Recipe } from '../types/recipe';
+
+interface RecipeCardProps {
+  recipe: Recipe;
+}
+
+export function RecipeCard({ recipe }: RecipeCardProps) {
+  const categoryEmojis = {
+    breakfast: '🌅',
+    lunch: '☀️',
+    dinner: '🌙',
+  };
+
+  const timeBadgeColor = recipe.prep_time <= 10
+    ? 'bg-green-500'
+    : recipe.prep_time <= 20
+    ? 'bg-warmOrange-500'
+    : 'bg-yellow-500';
+
+  const mainIngredients = recipe.ingredients.slice(0, 3);
+
+  return (
+    <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all overflow-hidden border-2 border-gray-200 hover:border-sage-400 transform hover:scale-[1.02]">
+      <div className="relative">
+        <div className="absolute top-3 right-3 z-10">
+          <div className={`${timeBadgeColor} text-white px-4 py-3 rounded-full shadow-lg`}>
+            <div className="flex items-center gap-2">
+              <Clock size={20} strokeWidth={3} />
+              <span className="text-xl font-black">{recipe.prep_time}m</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-sage-100 to-warmOrange-100 p-6 pt-20">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-5xl">{categoryEmojis[recipe.category]}</span>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 leading-tight">
+                {recipe.title}
+              </h3>
+              <p className="text-sm text-gray-600 font-medium mt-1">
+                {recipe.category.charAt(0).toUpperCase() + recipe.category.slice(1)}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-6">
+        {recipe.one_sentence_summary && (
+          <p className="text-base text-gray-700 mb-4 leading-relaxed">
+            {recipe.one_sentence_summary}
+          </p>
+        )}
+
+        <div className="bg-sage-50 rounded-xl p-4 mb-4">
+          <h4 className="text-sm font-bold text-sage-800 mb-3 uppercase tracking-wide">
+            Main Ingredients
+          </h4>
+          <ul className="space-y-2">
+            {mainIngredients.map((ingredient, index) => (
+              <li key={index} className="flex items-center gap-2 text-base text-gray-800">
+                <span className="w-2 h-2 bg-sage-500 rounded-full flex-shrink-0"></span>
+                <span className="font-medium">{ingredient}</span>
+              </li>
+            ))}
+            {recipe.ingredients.length > 3 && (
+              <li className="text-sm text-gray-500 italic pl-4">
+                + {recipe.ingredients.length - 3} more
+              </li>
+            )}
+          </ul>
+        </div>
+
+        {recipe.staple_tags && recipe.staple_tags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {recipe.staple_tags.map((tag, index) => (
+              <span
+                key={index}
+                className="bg-warmOrange-100 text-warmOrange-800 px-3 py-1 rounded-full text-xs font-bold border border-warmOrange-300"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <a
+          href={recipe.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-base text-warmOrange-600 hover:text-warmOrange-700 font-bold hover:gap-3 transition-all"
+        >
+          <ExternalLink size={18} />
+          View Full Recipe
+        </a>
+      </div>
+    </div>
+  );
+}

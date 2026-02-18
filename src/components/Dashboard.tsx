@@ -1,0 +1,182 @@
+import { useState, useEffect } from 'react';
+import { ChefHat } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { LinkParser } from './LinkParser';
+import { PanicButtons } from './PanicButtons';
+import { PantryPulse } from './PantryPulse';
+import { RecipeCard } from './RecipeCard';
+import type { Recipe, Category } from '../types/recipe';
+
+export function Dashboard() {
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
+  const [panicFilter, setPanicFilter] = useState<string | null>(null);
+  const [selectedStaples, setSelectedStaples] = useState<string[]>([]);
+
+  const fetchRecipes = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setRecipes(data || []);
+    } catch (error) {
+      console.error('Error fetching recipes:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRecipes();
+  }, []);
+
+  const handleStapleToggle = (staple: string) => {
+    setSelectedStaples((prev) =>
+      prev.includes(staple)
+        ? prev.filter((s) => s !== staple)
+        : [...prev, staple]
+    );
+  };
+
+  const filteredRecipes = recipes.filter((recipe) => {
+    if (selectedCategory !== 'all' && recipe.category !== selectedCategory) {
+      return false;
+    }
+
+    if (panicFilter === 'under-10' && recipe.prep_time > 10) {
+      return false;
+    }
+
+    if (panicFilter === 'under-20' && recipe.prep_time > 20) {
+      return false;
+    }
+
+    if (panicFilter === 'high-protein') {
+      const proteinIngredients = ['eggs', 'chicken', 'yogurt', 'cheese', 'beans'];
+      const hasProtein = recipe.staple_tags?.some((tag) =>
+        proteinIngredients.includes(tag.toLowerCase())
+      ) || recipe.ingredients.some((ing) =>
+        proteinIngredients.some((protein) =>
+          ing.toLowerCase().includes(protein)
+        )
+      );
+      if (!hasProtein) {
+        return false;
+      }
+    }
+
+    if (selectedStaples.length > 0) {
+      const hasAllStaples = selectedStaples.every((staple) =>
+        recipe.staple_tags?.some((tag) =>
+          tag.toLowerCase() === staple.toLowerCase()
+        ) || recipe.ingredients.some((ing) =>
+          ing.toLowerCase().includes(staple.toLowerCase())
+        )
+      );
+      if (!hasAllStaples) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+
+  const categories: { value: Category | 'all'; label: string; icon: string }[] = [
+    { value: 'all', label: 'All Recipes', icon: '🍽️' },
+    { value: 'breakfast', label: 'Breakfast', icon: '🌅' },
+    { value: 'lunch', label: 'Lunch', icon: '☀️' },
+    { value: 'dinner', label: 'Dinner', icon: '🌙' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-sage-50 to-warmOrange-50 pb-12">
+      <div className="max-w-7xl mx-auto">
+        <header className="text-center pt-8 pb-4 px-4">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <ChefHat size={48} className="text-sage-600" />
+            <h1 className="text-4xl md:text-6xl font-black text-sage-800">
+              Toddler Chef
+            </h1>
+          </div>
+          <p className="text-xl text-sage-600 font-bold">
+            The 15-Minute Survival Tool
+          </p>
+        </header>
+
+        <PanicButtons
+          activeFilter={panicFilter}
+          onFilterChange={setPanicFilter}
+        />
+
+        <PantryPulse
+          selectedStaples={selectedStaples}
+          onStapleToggle={handleStapleToggle}
+        />
+
+        <div className="px-4">
+          <LinkParser onRecipeAdded={fetchRecipes} />
+
+          <div className="mb-8 flex flex-wrap gap-3 justify-center">
+            {categories.map((category) => (
+              <button
+                key={category.value}
+                onClick={() => setSelectedCategory(category.value)}
+                className={`px-6 py-3 rounded-2xl font-bold text-lg transition-all shadow-md ${
+                  selectedCategory === category.value
+                    ? 'bg-sage-600 text-white shadow-lg scale-110'
+                    : 'bg-white text-gray-700 hover:bg-sage-100'
+                }`}
+              >
+                <span className="mr-2 text-2xl">{category.icon}</span>
+                {category.label}
+              </button>
+            ))}
+          </div>
+
+          {isLoading ? (
+            <div className="text-center py-20">
+              <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-sage-600 border-t-transparent"></div>
+              <p className="mt-6 text-sage-600 font-bold text-xl">Loading your recipes...</p>
+            </div>
+          ) : filteredRecipes.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-3xl shadow-xl border-2 border-gray-200">
+              <p className="text-2xl text-gray-700 mb-3 font-bold">
+                {recipes.length === 0 ? 'No recipes yet!' : 'No recipes match your filters'}
+              </p>
+              <p className="text-lg text-gray-500">
+                {recipes.length === 0
+                  ? 'Add your first recipe using the form above'
+                  : 'Try adjusting your panic buttons or pantry selections'}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="mb-6 text-center">
+                <p className="text-lg font-bold text-sage-700">
+                  {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? 's' : ''} found
+                  {panicFilter && (
+                    <span className="ml-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                      {panicFilter === 'under-10' && '⚡ 10min or less'}
+                      {panicFilter === 'under-20' && '🔥 20min or less'}
+                      {panicFilter === 'high-protein' && '💪 High Protein'}
+                    </span>
+                  )}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredRecipes.map((recipe) => (
+                  <RecipeCard key={recipe.id} recipe={recipe} />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
