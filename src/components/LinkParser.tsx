@@ -11,9 +11,10 @@ interface LinkParserProps {
 export function LinkParser({ onRecipeAdded }: LinkParserProps) {
   const [url, setUrl] = useState('');
   const [manualContent, setManualContent] = useState('');
+  const [category, setCategory] = useState<Category>('breakfast');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showManualInput, setShowManualInput] = useState(false);
+  const [showManualInput, setShowManualInput] = useState(true);
 
   const fetchContentFromEdgeFunction = async (url: string): Promise<string> => {
     try {
@@ -66,7 +67,12 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
 
     try {
       const scrapedContent = await fetchContentFromEdgeFunction(url);
-      const category = (['breakfast', 'lunch', 'dinner', 'snacks'] as const)[Math.floor(Math.random() * 4)];
+
+      if (scrapedContent.includes('Check the original post for details')) {
+        setError('Auto-scraping failed. Please use "Paste Text" to manually add the recipe.');
+        setIsLoading(false);
+        return;
+      }
 
       const extracted = extractRecipe(url, scrapedContent, category);
 
@@ -111,10 +117,9 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
     setIsLoading(true);
 
     try {
-      const category = (['breakfast', 'lunch', 'dinner', 'snacks'] as const)[Math.floor(Math.random() * 4)];
-      const mockUrl = `https://manual-entry.local/${Date.now()}`;
+      const sourceUrl = url.trim() || `https://manual-entry.local/${Date.now()}`;
 
-      const extracted = extractRecipe(mockUrl, manualContent, category);
+      const extracted = extractRecipe(sourceUrl, manualContent, category);
 
       const { error: insertError } = await supabase
         .from('recipes')
@@ -157,9 +162,17 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
           className="text-sm text-sage-600 hover:text-sage-800 flex items-center gap-1"
         >
           <FileText size={16} />
-          {showManualInput ? 'Use URL' : 'Paste Text'}
+          {showManualInput ? 'Try Auto-Scrape' : 'Paste Text'}
         </button>
       </div>
+
+      {showManualInput && (
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <p className="text-sm text-blue-900">
+            <strong>Tip:</strong> On Instagram, tap the three dots (•••) on the post and select "Copy link" to get the URL. Then copy the recipe caption text and paste it below.
+          </p>
+        </div>
+      )}
 
       {!showManualInput ? (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -172,10 +185,26 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
               className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800 placeholder-gray-400"
               disabled={isLoading}
             />
-            {error && (
-              <p className="text-red-500 text-sm mt-2">{error}</p>
-            )}
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as Category)}
+              className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800"
+              disabled={isLoading}
+            >
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="snacks">Snacks</option>
+            </select>
+          </div>
+
+          {error && (
+            <p className="text-red-500 text-sm">{error}</p>
+          )}
 
           <button
             type="submit"
@@ -189,17 +218,41 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
       ) : (
         <form onSubmit={handleManualSubmit} className="space-y-4">
           <div>
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="Instagram/TikTok URL (optional)"
+              className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800 placeholder-gray-400 mb-3"
+              disabled={isLoading}
+            />
             <textarea
               value={manualContent}
               onChange={(e) => setManualContent(e.target.value)}
-              placeholder="Paste recipe text here (caption, ingredients list, etc.)..."
-              className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800 placeholder-gray-400 min-h-32"
+              placeholder="Paste the recipe caption text here...&#10;&#10;Example:&#10;🍳 Veggie Scramble&#10;&#10;Ingredients:&#10;• 3 eggs&#10;• 1 cup spinach&#10;• 1/2 cup cheese&#10;&#10;Cook for 10 minutes..."
+              className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800 placeholder-gray-400 min-h-48"
               disabled={isLoading}
             />
-            {error && (
-              <p className="text-red-500 text-sm mt-2">{error}</p>
-            )}
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as Category)}
+              className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800"
+              disabled={isLoading}
+            >
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="snacks">Snacks</option>
+            </select>
+          </div>
+
+          {error && (
+            <p className="text-red-500 text-sm">{error}</p>
+          )}
 
           <button
             type="submit"
