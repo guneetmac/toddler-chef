@@ -1,6 +1,6 @@
 # PantryPulse 🍳
 
-A smart recipe management system that transforms how home cooks discover, organize, and plan meals from social media recipes. Import recipes from Instagram and TikTok, organize them intelligently, and never lose track of your saved recipes again.
+Your lifeline for feeding little ones without the stress. Built for busy moms juggling a million things, PantryPulse helps you save, organize, and quickly find toddler-friendly recipes from Instagram and TikTok. No more scrolling through endless saved posts or wondering what to make for lunch - just quick, easy meal ideas when you need them most.
 
 ![PantryPulse](https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1200)
 
