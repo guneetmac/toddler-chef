@@ -177,17 +177,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📝 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## 🙏 Acknowledgments
-
-- Recipe data parsed using AI-powered extraction
-- Icons by [Lucide](https://lucide.dev)
-- Stock photos from [Pexels](https://pexels.com)
-- Built with [Supabase](https://supabase.com)
-
 ## 🐛 Known Issues
 
 - Instagram scraping may require periodic updates due to platform changes
@@ -210,4 +199,4 @@ Have questions or suggestions? Open an issue or reach out!
 
 ---
 
-Made with ❤️ for home cooks everywhere
+Made with ❤️ for mom cooks everywhere
