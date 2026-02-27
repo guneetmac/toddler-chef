@@ -105,15 +105,17 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           </div>
         )}
 
-        <a
-          href={recipe.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-base text-warmOrange-600 hover:text-warmOrange-700 font-bold hover:gap-3 transition-all"
-        >
-          <ExternalLink size={18} />
-          View Original Post
-        </a>
+        {recipe.url && !recipe.url.includes('toddlerchef.app/recipes') && (
+          <a
+            href={recipe.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-base text-warmOrange-600 hover:text-warmOrange-700 font-bold hover:gap-3 transition-all"
+          >
+            <ExternalLink size={18} />
+            View Original Post
+          </a>
+        )}
       </div>
     </div>
   );
