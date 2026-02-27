@@ -7,14 +7,19 @@ Your lifeline for feeding little ones without the stress. Built for busy moms ju
 ## ✨ Features
 
 ### 🔗 Intelligent Recipe Import
-- **Social Media Integration**: Import recipes directly from Instagram and TikTok posts
+- **Multi-Platform Support**: Import recipes from ANY website including:
+  - Instagram and TikTok posts
+  - AllRecipes, Food Network, Tasty
+  - NYT Cooking, Bon Appetit, Epicurious
+  - Simply Recipes, and thousands more
 - **AI-Powered Extraction**: Automatically parses recipe text to extract:
   - Titles and descriptions
   - Ingredient lists with quantities
   - Cooking times
   - Difficulty levels
   - Step-by-step instructions
-- **Flexible Input**: Manual paste option for quick recipe entry
+- **Smart Scraping**: Uses Recipe Schema (JSON-LD) markup to extract structured data from recipe websites
+- **Flexible Input**: Manual paste option for quick recipe entry when auto-scraping isn't available
 
 ### 📚 Smart Organization
 - **Category System**: Organize by Breakfast, Lunch, Dinner, and Snacks
@@ -73,10 +78,11 @@ Your lifeline for feeding little ones without the stress. Built for busy moms ju
      supabase db push
      ```
 
-5. **Deploy the Edge Function (Optional)**
-   - For Instagram scraping functionality, deploy the edge function:
+5. **Deploy the Edge Function**
+   - For automatic recipe scraping from any website, deploy the edge function:
    - In Supabase dashboard: Database → Functions → Deploy new function
    - Upload the contents of `supabase/functions/scrape-instagram/`
+   - Note: This function works with Instagram, TikTok, and any recipe website using standard Recipe Schema markup
 
 6. **Start the development server**
    ```bash
@@ -89,11 +95,22 @@ Your lifeline for feeding little ones without the stress. Built for busy moms ju
 ## 📖 Usage
 
 ### Adding a Recipe
-1. Click the "Add from Link" tab
-2. Paste an Instagram or TikTok recipe URL
-3. Click "Extract Recipe" and wait for AI to parse the content
-4. Review and edit if needed
-5. Click "Add Recipe"
+
+#### Auto-Scrape Method (Recommended)
+1. Click "Try Auto-Scrape" if you're in manual mode
+2. Paste any recipe URL from:
+   - Social media: Instagram, TikTok
+   - Recipe sites: AllRecipes, Food Network, Tasty, NYT Cooking, etc.
+3. Select a category (Breakfast, Lunch, Dinner, or Snacks)
+4. Click "Save Recipe" - the system automatically extracts all details
+5. Recipe is instantly saved to your collection
+
+#### Manual Paste Method
+1. Click "Paste Text" to switch to manual mode
+2. Copy recipe text from any source (caption, blog post, etc.)
+3. Paste the text into the large text area
+4. Optionally add the source URL
+5. Select a category and click "Save Recipe"
 
 ### Finding Recipes
 - Use the search bar to find recipes by name or ingredient
@@ -179,8 +196,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 🐛 Known Issues
 
-- Instagram scraping may require periodic updates due to platform changes
+- Social media scraping (Instagram, TikTok) may require periodic updates due to platform changes
 - Some recipe posts may not parse correctly if formatting is unusual
+- Recipe Schema support varies by website - popular recipe sites work best
 
 ## 🚀 Future Enhancements
 
