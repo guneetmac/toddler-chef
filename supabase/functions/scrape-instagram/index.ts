@@ -165,6 +165,100 @@ async function scrapeTikTokContent(url: string): Promise<string> {
   }
 }
 
+async function scrapeGenericRecipeSite(url: string): Promise<string> {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch: ${response.status}`);
+    }
+
+    const html = await response.text();
+    let recipeData: any = {};
+
+    const jsonLdMatches = html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g);
+    for (const match of jsonLdMatches) {
+      try {
+        const jsonData = JSON.parse(match[1]);
+        const recipeSchema = Array.isArray(jsonData)
+          ? jsonData.find((item: any) => item["@type"] === "Recipe")
+          : jsonData["@type"] === "Recipe" ? jsonData : null;
+
+        if (recipeSchema) {
+          recipeData = recipeSchema;
+          break;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    let recipeText = "";
+
+    if (recipeData.name) {
+      recipeText += `${recipeData.name}\n\n`;
+    }
+
+    if (recipeData.description) {
+      recipeText += `${recipeData.description}\n\n`;
+    }
+
+    if (recipeData.totalTime || recipeData.prepTime || recipeData.cookTime) {
+      const time = recipeData.totalTime || recipeData.prepTime || recipeData.cookTime;
+      recipeText += `Time: ${time}\n\n`;
+    }
+
+    if (recipeData.recipeIngredient && Array.isArray(recipeData.recipeIngredient)) {
+      recipeText += `Ingredients:\n`;
+      recipeData.recipeIngredient.forEach((ingredient: string) => {
+        recipeText += `• ${ingredient}\n`;
+      });
+      recipeText += `\n`;
+    }
+
+    if (recipeData.recipeInstructions) {
+      recipeText += `Instructions:\n`;
+      if (Array.isArray(recipeData.recipeInstructions)) {
+        recipeData.recipeInstructions.forEach((instruction: any, idx: number) => {
+          const text = typeof instruction === 'string' ? instruction : instruction.text;
+          if (text) {
+            recipeText += `${idx + 1}. ${text}\n`;
+          }
+        });
+      } else if (typeof recipeData.recipeInstructions === 'string') {
+        recipeText += recipeData.recipeInstructions;
+      }
+    }
+
+    if (!recipeText || recipeText.length < 50) {
+      const titleMatch = html.match(/<meta property="og:title" content="([^"]*)"/);
+      const descMatch = html.match(/<meta property="og:description" content="([^"]*)"/);
+
+      if (titleMatch) {
+        recipeText = titleMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&') + "\n\n";
+      }
+      if (descMatch) {
+        recipeText += descMatch[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+      }
+    }
+
+    if (!recipeText || recipeText.length < 50) {
+      return `Recipe from ${new URL(url).hostname}\n\nIngredients:\n• Check the original page for details\n\nTime: 20 minutes`;
+    }
+
+    return recipeText;
+  } catch (error) {
+    console.error("Scraping error:", error);
+    return `Recipe from website\n\nIngredients:\n• Check the original page for details\n\nTime: 20 minutes`;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -193,13 +287,7 @@ Deno.serve(async (req: Request) => {
     } else if (url.includes("tiktok.com")) {
       content = await scrapeTikTokContent(url);
     } else {
-      return new Response(
-        JSON.stringify({ success: false, error: "Unsupported URL" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      content = await scrapeGenericRecipeSite(url);
     }
 
     const response: ScrapeResponse = {

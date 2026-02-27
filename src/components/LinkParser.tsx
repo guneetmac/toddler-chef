@@ -58,8 +58,8 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
       return;
     }
 
-    if (!url.includes('instagram.com') && !url.includes('tiktok.com')) {
-      setError('Please enter an Instagram or TikTok URL');
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      setError('Please enter a valid URL starting with http:// or https://');
       return;
     }
 
@@ -169,7 +169,7 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
       {showManualInput && (
         <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <p className="text-sm text-blue-900">
-            <strong>Tip:</strong> On Instagram, tap the three dots (•••) on the post and select "Copy link" to get the URL. Then copy the recipe caption text and paste it below.
+            <strong>Tip:</strong> Copy the recipe text from any website and paste it below. Include ingredients, instructions, and timing if available.
           </p>
         </div>
       )}
@@ -181,7 +181,7 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="Paste Instagram or TikTok URL here..."
+              placeholder="Paste recipe URL (Instagram, TikTok, AllRecipes, Food Network, etc.)"
               className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800 placeholder-gray-400"
               disabled={isLoading}
             />
@@ -222,7 +222,7 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="Instagram/TikTok URL (optional)"
+              placeholder="Recipe URL (optional)"
               className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800 placeholder-gray-400 mb-3"
               disabled={isLoading}
             />
