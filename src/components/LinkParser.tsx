@@ -31,7 +31,9 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
       );
 
       if (!response.ok) {
-        throw new Error('Failed to scrape content');
+        const errorText = await response.text();
+        console.error('Edge function response error:', response.status, errorText);
+        throw new Error(`Failed to scrape content: ${response.status}`);
       }
 
       const data = await response.json();
@@ -91,15 +93,19 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
           category
         }]);
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        throw insertError;
+      }
 
       setUrl('');
       setManualContent('');
       setShowManualInput(false);
       onRecipeAdded();
     } catch (err) {
-      setError('Failed to add recipe. Please try again.');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add recipe. Please try again.';
+      setError(errorMessage);
+      console.error('Full error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -136,15 +142,19 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
           category
         }]);
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Database insert error:', insertError);
+        throw insertError;
+      }
 
       setUrl('');
       setManualContent('');
       setShowManualInput(false);
       onRecipeAdded();
     } catch (err) {
-      setError('Failed to add recipe. Please try again.');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add recipe. Please try again.';
+      setError(errorMessage);
+      console.error('Full error:', err);
     } finally {
       setIsLoading(false);
     }
