@@ -121,21 +121,27 @@ export function Dashboard() {
       ].join(' ').toLowerCase();
 
       for (const allergy of allergyFilters) {
-        if (allergy === 'Dairy Free') {
-          const dairyKeywords = ['milk', 'cheese', 'butter', 'cream', 'yogurt', 'dairy', 'parmesan', 'mozzarella', 'cheddar'];
+        if (allergy === 'No Dairy') {
+          const dairyKeywords = ['milk', 'cheese', 'butter', 'cream', 'yogurt', 'dairy', 'parmesan', 'mozzarella', 'cheddar', 'ghee', 'whey'];
           if (dairyKeywords.some(keyword => recipeText.includes(keyword))) {
             return false;
           }
         }
-        if (allergy === 'Gluten Free') {
-          const glutenKeywords = ['bread', 'flour', 'pasta', 'wheat', 'gluten', 'noodle', 'tortilla', 'cracker', 'cereal'];
+        if (allergy === 'No Gluten') {
+          const glutenKeywords = ['bread', 'flour', 'pasta', 'wheat', 'gluten', 'noodle', 'tortilla', 'cracker', 'cereal', 'bagel', 'bun'];
           if (glutenKeywords.some(keyword => recipeText.includes(keyword))) {
             return false;
           }
         }
-        if (allergy === 'Nut Free') {
-          const nutKeywords = ['peanut', 'almond', 'walnut', 'cashew', 'pecan', 'hazelnut', 'pistachio', 'nut'];
+        if (allergy === 'No Nuts') {
+          const nutKeywords = ['peanut', 'almond', 'walnut', 'cashew', 'pecan', 'hazelnut', 'pistachio', 'nut', 'peanut butter', 'almond butter'];
           if (nutKeywords.some(keyword => recipeText.includes(keyword))) {
+            return false;
+          }
+        }
+        if (allergy === 'No Eggs') {
+          const eggKeywords = ['egg', 'eggs', 'scramble', 'omelet', 'omelette', 'frittata'];
+          if (eggKeywords.some(keyword => recipeText.includes(keyword))) {
             return false;
           }
         }

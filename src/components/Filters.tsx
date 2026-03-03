@@ -28,7 +28,7 @@ export function Filters({
   const [isAllergyDropdownOpen, setIsAllergyDropdownOpen] = useState(false);
 
   const meatTypes = ['Chicken', 'Beef', 'Pork', 'Fish', 'Turkey', 'Lamb'];
-  const allergyOptions = ['Dairy Free', 'Gluten Free', 'Nut Free'];
+  const allergyOptions = ['No Dairy', 'No Gluten', 'No Nuts', 'No Eggs'];
 
   const handleIngredientToggle = (ingredient: string) => {
     if (selectedIngredients.includes(ingredient)) {

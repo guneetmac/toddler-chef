@@ -105,7 +105,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           </div>
         )}
 
-        {recipe.url && !recipe.url.includes('toddlerchef.app/recipes') && (
+        {recipe.url && !recipe.url.includes('manual-entry.local') && (
           <a
             href={recipe.url}
             target="_blank"
