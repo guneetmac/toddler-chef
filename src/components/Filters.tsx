@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, Leaf, AlertCircle } from 'lucide-react';
+import { ChevronDown, Leaf, AlertCircle, Plus, X } from 'lucide-react';
 import { COMMON_INGREDIENTS } from '../types/recipe';
 
 interface FiltersProps {
@@ -26,9 +26,14 @@ export function Filters({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMeatDropdownOpen, setIsMeatDropdownOpen] = useState(false);
   const [isAllergyDropdownOpen, setIsAllergyDropdownOpen] = useState(false);
+  const [customIngredients, setCustomIngredients] = useState<string[]>([]);
+  const [newIngredient, setNewIngredient] = useState('');
+  const [showAddInput, setShowAddInput] = useState(false);
 
   const meatTypes = ['Chicken', 'Beef', 'Pork', 'Fish', 'Turkey', 'Lamb'];
   const allergyOptions = ['No Dairy', 'No Gluten', 'No Nuts', 'No Eggs'];
+
+  const allIngredients = [...COMMON_INGREDIENTS, ...customIngredients];
 
   const handleIngredientToggle = (ingredient: string) => {
     if (selectedIngredients.includes(ingredient)) {
@@ -43,6 +48,22 @@ export function Filters({
       onAllergyFiltersChange(allergyFilters.filter((a) => a !== allergy));
     } else {
       onAllergyFiltersChange([...allergyFilters, allergy]);
+    }
+  };
+
+  const handleAddIngredient = () => {
+    const trimmedIngredient = newIngredient.trim();
+    if (trimmedIngredient && !allIngredients.includes(trimmedIngredient)) {
+      setCustomIngredients([...customIngredients, trimmedIngredient]);
+      setNewIngredient('');
+      setShowAddInput(false);
+    }
+  };
+
+  const handleDeleteCustomIngredient = (ingredient: string) => {
+    setCustomIngredients(customIngredients.filter((i) => i !== ingredient));
+    if (selectedIngredients.includes(ingredient)) {
+      onIngredientsChange(selectedIngredients.filter((i) => i !== ingredient));
     }
   };
 
@@ -189,22 +210,75 @@ export function Filters({
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-10 p-3 max-h-64 overflow-y-auto">
-              <div className="space-y-2">
-                {COMMON_INGREDIENTS.map((ingredient) => (
-                  <label
-                    key={ingredient}
-                    className="flex items-center gap-2 p-2 hover:bg-sage-50 rounded cursor-pointer"
-                  >
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-10 p-3 max-h-80 overflow-y-auto">
+              <div className="mb-3 pb-3 border-b border-gray-200">
+                {showAddInput ? (
+                  <div className="flex gap-2">
                     <input
-                      type="checkbox"
-                      checked={selectedIngredients.includes(ingredient)}
-                      onChange={() => handleIngredientToggle(ingredient)}
-                      className="w-4 h-4 text-sage-600 rounded focus:ring-sage-500"
+                      type="text"
+                      value={newIngredient}
+                      onChange={(e) => setNewIngredient(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddIngredient()}
+                      placeholder="Add custom ingredient..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sage-500"
+                      autoFocus
                     />
-                    <span className="text-sm text-gray-700">{ingredient}</span>
-                  </label>
-                ))}
+                    <button
+                      onClick={handleAddIngredient}
+                      className="px-3 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+                    >
+                      <Plus size={16} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowAddInput(false);
+                        setNewIngredient('');
+                      }}
+                      className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAddInput(true)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-sage-50 text-sage-700 rounded-lg hover:bg-sage-100 transition-colors font-medium text-sm"
+                  >
+                    <Plus size={16} />
+                    Add Custom Ingredient
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                {allIngredients.map((ingredient) => {
+                  const isCustom = customIngredients.includes(ingredient);
+                  return (
+                    <div
+                      key={ingredient}
+                      className="flex items-center gap-2 group"
+                    >
+                      <label className="flex items-center gap-2 p-2 hover:bg-sage-50 rounded cursor-pointer flex-1">
+                        <input
+                          type="checkbox"
+                          checked={selectedIngredients.includes(ingredient)}
+                          onChange={() => handleIngredientToggle(ingredient)}
+                          className="w-4 h-4 text-sage-600 rounded focus:ring-sage-500"
+                        />
+                        <span className="text-sm text-gray-700">{ingredient}</span>
+                      </label>
+                      {isCustom && (
+                        <button
+                          onClick={() => handleDeleteCustomIngredient(ingredient)}
+                          className="p-1 text-gray-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                          title="Delete custom ingredient"
+                        >
+                          <X size={16} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
