@@ -16,6 +16,7 @@ export function Dashboard() {
   const [selectedStaples, setSelectedStaples] = useState<string[]>([]);
   const [vegetarianFilter, setVegetarianFilter] = useState(false);
   const [meatTypeFilter, setMeatTypeFilter] = useState<string | null>(null);
+  const [allergyFilters, setAllergyFilters] = useState<string[]>([]);
 
   const fetchRecipes = async () => {
     setIsLoading(true);
@@ -112,6 +113,35 @@ export function Dashboard() {
       }
     }
 
+    if (allergyFilters.length > 0) {
+      const recipeText = [
+        ...recipe.ingredients,
+        ...(recipe.staple_tags || []),
+        recipe.title
+      ].join(' ').toLowerCase();
+
+      for (const allergy of allergyFilters) {
+        if (allergy === 'Dairy Free') {
+          const dairyKeywords = ['milk', 'cheese', 'butter', 'cream', 'yogurt', 'dairy', 'parmesan', 'mozzarella', 'cheddar'];
+          if (dairyKeywords.some(keyword => recipeText.includes(keyword))) {
+            return false;
+          }
+        }
+        if (allergy === 'Gluten Free') {
+          const glutenKeywords = ['bread', 'flour', 'pasta', 'wheat', 'gluten', 'noodle', 'tortilla', 'cracker', 'cereal'];
+          if (glutenKeywords.some(keyword => recipeText.includes(keyword))) {
+            return false;
+          }
+        }
+        if (allergy === 'Nut Free') {
+          const nutKeywords = ['peanut', 'almond', 'walnut', 'cashew', 'pecan', 'hazelnut', 'pistachio', 'nut'];
+          if (nutKeywords.some(keyword => recipeText.includes(keyword))) {
+            return false;
+          }
+        }
+      }
+    }
+
     return true;
   });
 
@@ -148,11 +178,13 @@ export function Dashboard() {
             selectedIngredients={selectedStaples}
             vegetarianFilter={vegetarianFilter}
             meatTypeFilter={meatTypeFilter}
+            allergyFilters={allergyFilters}
             onIngredientsChange={(ingredients) => {
               setSelectedStaples(ingredients);
             }}
             onVegetarianFilterChange={setVegetarianFilter}
             onMeatTypeFilterChange={setMeatTypeFilter}
+            onAllergyFiltersChange={setAllergyFilters}
           />
 
           <LinkParser onRecipeAdded={fetchRecipes} />

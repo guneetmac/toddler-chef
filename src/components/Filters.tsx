@@ -1,34 +1,48 @@
 import { useState } from 'react';
-import { ChevronDown, Leaf } from 'lucide-react';
+import { ChevronDown, Leaf, AlertCircle } from 'lucide-react';
 import { COMMON_INGREDIENTS } from '../types/recipe';
 
 interface FiltersProps {
   selectedIngredients: string[];
   vegetarianFilter: boolean;
   meatTypeFilter: string | null;
+  allergyFilters: string[];
   onIngredientsChange: (ingredients: string[]) => void;
   onVegetarianFilterChange: (value: boolean) => void;
   onMeatTypeFilterChange: (value: string | null) => void;
+  onAllergyFiltersChange: (filters: string[]) => void;
 }
 
 export function Filters({
   selectedIngredients,
   vegetarianFilter,
   meatTypeFilter,
+  allergyFilters,
   onIngredientsChange,
   onVegetarianFilterChange,
   onMeatTypeFilterChange,
+  onAllergyFiltersChange,
 }: FiltersProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMeatDropdownOpen, setIsMeatDropdownOpen] = useState(false);
+  const [isAllergyDropdownOpen, setIsAllergyDropdownOpen] = useState(false);
 
   const meatTypes = ['Chicken', 'Beef', 'Pork', 'Fish', 'Turkey', 'Lamb'];
+  const allergyOptions = ['Dairy Free', 'Gluten Free', 'Nut Free'];
 
   const handleIngredientToggle = (ingredient: string) => {
     if (selectedIngredients.includes(ingredient)) {
       onIngredientsChange(selectedIngredients.filter((i) => i !== ingredient));
     } else {
       onIngredientsChange([...selectedIngredients, ingredient]);
+    }
+  };
+
+  const handleAllergyToggle = (allergy: string) => {
+    if (allergyFilters.includes(allergy)) {
+      onAllergyFiltersChange(allergyFilters.filter((a) => a !== allergy));
+    } else {
+      onAllergyFiltersChange([...allergyFilters, allergy]);
     }
   };
 
@@ -76,11 +90,16 @@ export function Filters({
           {isMeatDropdownOpen && !vegetarianFilter && (
             <div className="absolute top-full left-0 mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-10 p-2 min-w-[150px]">
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   onMeatTypeFilterChange(null);
                   setIsMeatDropdownOpen(false);
                 }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm text-gray-700"
+                className={`w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm ${
+                  meatTypeFilter === null
+                    ? 'bg-gray-100 text-gray-900 font-semibold'
+                    : 'text-gray-700'
+                }`}
               >
                 All Meats
               </button>
@@ -100,6 +119,52 @@ export function Filters({
                   {meat}
                 </button>
               ))}
+            </div>
+          )}
+        </div>
+
+        <div className="relative">
+          <button
+            onClick={() => setIsAllergyDropdownOpen(!isAllergyDropdownOpen)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+              allergyFilters.length > 0
+                ? 'bg-red-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <AlertCircle size={18} />
+            <span>
+              Allergies
+              {allergyFilters.length > 0 && (
+                <span className="ml-2 px-2 py-0.5 bg-red-600 text-white text-xs rounded-full">
+                  {allergyFilters.length}
+                </span>
+              )}
+            </span>
+            <ChevronDown
+              size={16}
+              className={`transition-transform ${isAllergyDropdownOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          {isAllergyDropdownOpen && (
+            <div className="absolute top-full left-0 mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-10 p-3 min-w-[180px]">
+              <div className="space-y-2">
+                {allergyOptions.map((allergy) => (
+                  <label
+                    key={allergy}
+                    className="flex items-center gap-2 p-2 hover:bg-red-50 rounded cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={allergyFilters.includes(allergy)}
+                      onChange={() => handleAllergyToggle(allergy)}
+                      className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
+                    />
+                    <span className="text-sm text-gray-700">{allergy}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           )}
         </div>

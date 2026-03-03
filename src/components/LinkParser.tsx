@@ -14,7 +14,7 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
   const [category, setCategory] = useState<Category>('breakfast');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showManualInput, setShowManualInput] = useState(true);
+  const [showManualInput, setShowManualInput] = useState(false);
 
   const fetchContentFromEdgeFunction = async (url: string): Promise<string> => {
     try {
