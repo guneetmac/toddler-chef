@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronDown, Leaf, AlertCircle, Plus, X } from 'lucide-react';
 import { COMMON_INGREDIENTS, MealType } from '../types/recipe';
 
@@ -40,6 +40,7 @@ export function Filters({
   const [newMealType, setNewMealType] = useState('');
   const [showAddInput, setShowAddInput] = useState(false);
   const [showMealTypeInput, setShowMealTypeInput] = useState(false);
+  const filterContainerRef = useRef<HTMLDivElement>(null);
 
   const proteinTypes = ['Beef', 'Chicken', 'Eggs', 'Fish', 'Lamb', 'Pork', 'Turkey'].sort();
   const allergyOptions = ['No Dairy', 'No Eggs', 'No Gluten', 'No Nuts'].sort();
@@ -47,6 +48,26 @@ export function Filters({
   const allMealTypes = [...defaultMealTypes, ...customMealTypes].sort();
 
   const allIngredients = [...COMMON_INGREDIENTS, ...customIngredients].sort();
+
+  const closeAllDropdowns = () => {
+    setIsDropdownOpen(false);
+    setIsProteinDropdownOpen(false);
+    setIsAllergyDropdownOpen(false);
+    setIsMealTypeDropdownOpen(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterContainerRef.current && !filterContainerRef.current.contains(event.target as Node)) {
+        closeAllDropdowns();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleIngredientToggle = (ingredient: string) => {
     if (selectedIngredients.includes(ingredient)) {
@@ -96,13 +117,6 @@ export function Filters({
     }
   };
 
-  const closeAllDropdowns = () => {
-    setIsDropdownOpen(false);
-    setIsProteinDropdownOpen(false);
-    setIsAllergyDropdownOpen(false);
-    setIsMealTypeDropdownOpen(false);
-  };
-
   const openDropdown = (dropdown: 'ingredients' | 'protein' | 'allergy' | 'mealType') => {
     closeAllDropdowns();
     switch (dropdown) {
@@ -122,7 +136,7 @@ export function Filters({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 mb-6 border-2 border-gray-100">
+    <div ref={filterContainerRef} className="bg-white rounded-xl shadow-md p-4 mb-6 border-2 border-gray-100">
       <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
         <button
           onClick={() => {
