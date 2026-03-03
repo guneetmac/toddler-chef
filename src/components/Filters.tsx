@@ -41,12 +41,12 @@ export function Filters({
   const [showAddInput, setShowAddInput] = useState(false);
   const [showMealTypeInput, setShowMealTypeInput] = useState(false);
 
-  const proteinTypes = ['Chicken', 'Beef', 'Pork', 'Fish', 'Turkey', 'Lamb'];
-  const allergyOptions = ['No Dairy', 'No Gluten', 'No Nuts', 'No Eggs'];
+  const proteinTypes = ['Beef', 'Chicken', 'Eggs', 'Fish', 'Lamb', 'Pork', 'Turkey'].sort();
+  const allergyOptions = ['No Dairy', 'No Eggs', 'No Gluten', 'No Nuts'].sort();
   const defaultMealTypes: MealType[] = ['pasta', 'pancakes', 'muffins', 'curries', 'paratha'];
-  const allMealTypes = [...defaultMealTypes, ...customMealTypes];
+  const allMealTypes = [...defaultMealTypes, ...customMealTypes].sort();
 
-  const allIngredients = [...COMMON_INGREDIENTS, ...customIngredients];
+  const allIngredients = [...COMMON_INGREDIENTS, ...customIngredients].sort();
 
   const handleIngredientToggle = (ingredient: string) => {
     if (selectedIngredients.includes(ingredient)) {
@@ -96,6 +96,31 @@ export function Filters({
     }
   };
 
+  const closeAllDropdowns = () => {
+    setIsDropdownOpen(false);
+    setIsProteinDropdownOpen(false);
+    setIsAllergyDropdownOpen(false);
+    setIsMealTypeDropdownOpen(false);
+  };
+
+  const openDropdown = (dropdown: 'ingredients' | 'protein' | 'allergy' | 'mealType') => {
+    closeAllDropdowns();
+    switch (dropdown) {
+      case 'ingredients':
+        setIsDropdownOpen(true);
+        break;
+      case 'protein':
+        setIsProteinDropdownOpen(true);
+        break;
+      case 'allergy':
+        setIsAllergyDropdownOpen(true);
+        break;
+      case 'mealType':
+        setIsMealTypeDropdownOpen(true);
+        break;
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-md p-4 mb-6 border-2 border-gray-100">
       <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
@@ -118,7 +143,15 @@ export function Filters({
 
         <div className="relative">
           <button
-            onClick={() => !vegetarianFilter && setIsProteinDropdownOpen(!isProteinDropdownOpen)}
+            onClick={() => {
+              if (!vegetarianFilter) {
+                if (isProteinDropdownOpen) {
+                  closeAllDropdowns();
+                } else {
+                  openDropdown('protein');
+                }
+              }
+            }}
             disabled={vegetarianFilter}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
               vegetarianFilter
@@ -175,7 +208,13 @@ export function Filters({
 
         <div className="relative">
           <button
-            onClick={() => setIsAllergyDropdownOpen(!isAllergyDropdownOpen)}
+            onClick={() => {
+              if (isAllergyDropdownOpen) {
+                closeAllDropdowns();
+              } else {
+                openDropdown('allergy');
+              }
+            }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
               allergyFilters.length > 0
                 ? 'bg-red-500 text-white shadow-md'
@@ -221,7 +260,13 @@ export function Filters({
 
         <div className="relative">
           <button
-            onClick={() => setIsMealTypeDropdownOpen(!isMealTypeDropdownOpen)}
+            onClick={() => {
+              if (isMealTypeDropdownOpen) {
+                closeAllDropdowns();
+              } else {
+                openDropdown('mealType');
+              }
+            }}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
               mealTypeFilter
                 ? 'bg-blue-500 text-white shadow-md'
@@ -329,7 +374,13 @@ export function Filters({
 
         <div className="relative flex-1">
           <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            onClick={() => {
+              if (isDropdownOpen) {
+                closeAllDropdowns();
+              } else {
+                openDropdown('ingredients');
+              }
+            }}
             className="w-full flex items-center justify-between px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold text-gray-700 transition-colors"
           >
             <span>
