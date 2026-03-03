@@ -5,40 +5,43 @@ import { COMMON_INGREDIENTS, MealType } from '../types/recipe';
 interface FiltersProps {
   selectedIngredients: string[];
   vegetarianFilter: boolean;
-  meatTypeFilter: string | null;
+  proteinTypeFilter: string | null;
   allergyFilters: string[];
   mealTypeFilter: MealType | null;
+  customMealTypes: string[];
   onIngredientsChange: (ingredients: string[]) => void;
   onVegetarianFilterChange: (value: boolean) => void;
-  onMeatTypeFilterChange: (value: string | null) => void;
+  onProteinTypeFilterChange: (value: string | null) => void;
   onAllergyFiltersChange: (filters: string[]) => void;
   onMealTypeFilterChange: (value: MealType | null) => void;
+  onCustomMealTypesChange: (types: string[]) => void;
 }
 
 export function Filters({
   selectedIngredients,
   vegetarianFilter,
-  meatTypeFilter,
+  proteinTypeFilter,
   allergyFilters,
   mealTypeFilter,
+  customMealTypes,
   onIngredientsChange,
   onVegetarianFilterChange,
-  onMeatTypeFilterChange,
+  onProteinTypeFilterChange,
   onAllergyFiltersChange,
   onMealTypeFilterChange,
+  onCustomMealTypesChange,
 }: FiltersProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isMeatDropdownOpen, setIsMeatDropdownOpen] = useState(false);
+  const [isProteinDropdownOpen, setIsProteinDropdownOpen] = useState(false);
   const [isAllergyDropdownOpen, setIsAllergyDropdownOpen] = useState(false);
   const [isMealTypeDropdownOpen, setIsMealTypeDropdownOpen] = useState(false);
   const [customIngredients, setCustomIngredients] = useState<string[]>([]);
-  const [customMealTypes, setCustomMealTypes] = useState<string[]>([]);
   const [newIngredient, setNewIngredient] = useState('');
   const [newMealType, setNewMealType] = useState('');
   const [showAddInput, setShowAddInput] = useState(false);
   const [showMealTypeInput, setShowMealTypeInput] = useState(false);
 
-  const meatTypes = ['Chicken', 'Beef', 'Pork', 'Fish', 'Turkey', 'Lamb'];
+  const proteinTypes = ['Chicken', 'Beef', 'Pork', 'Fish', 'Turkey', 'Lamb'];
   const allergyOptions = ['No Dairy', 'No Gluten', 'No Nuts', 'No Eggs'];
   const defaultMealTypes: MealType[] = ['pasta', 'pancakes', 'muffins', 'curries', 'paratha'];
   const allMealTypes = [...defaultMealTypes, ...customMealTypes];
@@ -80,14 +83,14 @@ export function Filters({
   const handleAddMealType = () => {
     const trimmedMealType = newMealType.trim().toLowerCase();
     if (trimmedMealType && !allMealTypes.includes(trimmedMealType as MealType)) {
-      setCustomMealTypes([...customMealTypes, trimmedMealType]);
+      onCustomMealTypesChange([...customMealTypes, trimmedMealType]);
       setNewMealType('');
       setShowMealTypeInput(false);
     }
   };
 
   const handleDeleteCustomMealType = (mealType: string) => {
-    setCustomMealTypes(customMealTypes.filter((m) => m !== mealType));
+    onCustomMealTypesChange(customMealTypes.filter((m) => m !== mealType));
     if (mealTypeFilter === mealType) {
       onMealTypeFilterChange(null);
     }
@@ -99,8 +102,8 @@ export function Filters({
         <button
           onClick={() => {
             onVegetarianFilterChange(!vegetarianFilter);
-            if (!vegetarianFilter && meatTypeFilter) {
-              onMeatTypeFilterChange(null);
+            if (!vegetarianFilter && proteinTypeFilter) {
+              onProteinTypeFilterChange(null);
             }
           }}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
@@ -115,55 +118,55 @@ export function Filters({
 
         <div className="relative">
           <button
-            onClick={() => !vegetarianFilter && setIsMeatDropdownOpen(!isMeatDropdownOpen)}
+            onClick={() => !vegetarianFilter && setIsProteinDropdownOpen(!isProteinDropdownOpen)}
             disabled={vegetarianFilter}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
               vegetarianFilter
                 ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                : meatTypeFilter
+                : proteinTypeFilter
                 ? 'bg-orange-500 text-white shadow-md'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
             <span>
-              {meatTypeFilter || 'Meat Type'}
+              {proteinTypeFilter || 'Protein Type'}
             </span>
             <ChevronDown
               size={16}
-              className={`transition-transform ${isMeatDropdownOpen ? 'rotate-180' : ''}`}
+              className={`transition-transform ${isProteinDropdownOpen ? 'rotate-180' : ''}`}
             />
           </button>
 
-          {isMeatDropdownOpen && !vegetarianFilter && (
+          {isProteinDropdownOpen && !vegetarianFilter && (
             <div className="absolute top-full left-0 mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-10 p-2 min-w-[150px]">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onMeatTypeFilterChange(null);
-                  setIsMeatDropdownOpen(false);
+                  onProteinTypeFilterChange(null);
+                  setIsProteinDropdownOpen(false);
                 }}
                 className={`w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm ${
-                  meatTypeFilter === null
+                  proteinTypeFilter === null
                     ? 'bg-gray-100 text-gray-900 font-semibold'
                     : 'text-gray-700'
                 }`}
               >
-                All Meats
+                All Proteins
               </button>
-              {meatTypes.map((meat) => (
+              {proteinTypes.map((protein) => (
                 <button
-                  key={meat}
+                  key={protein}
                   onClick={() => {
-                    onMeatTypeFilterChange(meat);
-                    setIsMeatDropdownOpen(false);
+                    onProteinTypeFilterChange(protein);
+                    setIsProteinDropdownOpen(false);
                   }}
                   className={`w-full text-left px-3 py-2 hover:bg-orange-50 rounded text-sm ${
-                    meatTypeFilter === meat
+                    proteinTypeFilter === protein
                       ? 'bg-orange-100 text-orange-700 font-semibold'
                       : 'text-gray-700'
                   }`}
                 >
-                  {meat}
+                  {protein}
                 </button>
               ))}
             </div>

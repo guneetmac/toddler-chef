@@ -15,9 +15,10 @@ export function Dashboard() {
   const [panicFilter, setPanicFilter] = useState<string | null>(null);
   const [selectedStaples, setSelectedStaples] = useState<string[]>([]);
   const [vegetarianFilter, setVegetarianFilter] = useState(false);
-  const [meatTypeFilter, setMeatTypeFilter] = useState<string | null>(null);
+  const [proteinTypeFilter, setProteinTypeFilter] = useState<string | null>(null);
   const [allergyFilters, setAllergyFilters] = useState<string[]>([]);
   const [mealTypeFilter, setMealTypeFilter] = useState<MealType | null>(null);
+  const [customMealTypes, setCustomMealTypes] = useState<string[]>([]);
 
   const fetchRecipes = async () => {
     setIsLoading(true);
@@ -89,14 +90,20 @@ export function Dashboard() {
       }
     }
 
-    if (meatTypeFilter) {
+    if (proteinTypeFilter) {
       const recipeText = [
         ...recipe.ingredients,
         ...(recipe.staple_tags || []),
         recipe.title
       ].join(' ').toLowerCase();
 
-      if (!recipeText.includes(meatTypeFilter.toLowerCase())) {
+      if (!recipeText.includes(proteinTypeFilter.toLowerCase())) {
+        return false;
+      }
+    }
+
+    if (mealTypeFilter) {
+      if (recipe.meal_type !== mealTypeFilter) {
         return false;
       }
     }
@@ -188,19 +195,24 @@ export function Dashboard() {
           <Filters
             selectedIngredients={selectedStaples}
             vegetarianFilter={vegetarianFilter}
-            meatTypeFilter={meatTypeFilter}
+            proteinTypeFilter={proteinTypeFilter}
             allergyFilters={allergyFilters}
             mealTypeFilter={mealTypeFilter}
+            customMealTypes={customMealTypes}
             onIngredientsChange={(ingredients) => {
               setSelectedStaples(ingredients);
             }}
             onVegetarianFilterChange={setVegetarianFilter}
-            onMeatTypeFilterChange={setMeatTypeFilter}
+            onProteinTypeFilterChange={setProteinTypeFilter}
             onAllergyFiltersChange={setAllergyFilters}
             onMealTypeFilterChange={setMealTypeFilter}
+            onCustomMealTypesChange={setCustomMealTypes}
           />
 
-          <LinkParser onRecipeAdded={fetchRecipes} />
+          <LinkParser
+            onRecipeAdded={fetchRecipes}
+            customMealTypes={customMealTypes}
+          />
 
           <div className="mb-8 flex flex-wrap gap-3 justify-center">
             {categories.map((category) => (

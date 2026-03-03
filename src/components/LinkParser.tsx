@@ -6,9 +6,10 @@ import type { Category, MealType } from '../types/recipe';
 
 interface LinkParserProps {
   onRecipeAdded: () => void;
+  customMealTypes: string[];
 }
 
-export function LinkParser({ onRecipeAdded }: LinkParserProps) {
+export function LinkParser({ onRecipeAdded, customMealTypes }: LinkParserProps) {
   const [url, setUrl] = useState('');
   const [manualContent, setManualContent] = useState('');
   const [category, setCategory] = useState<Category>('breakfast');
@@ -16,6 +17,9 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
+
+  const defaultMealTypes: MealType[] = ['pasta', 'pancakes', 'muffins', 'curries', 'paratha'];
+  const allMealTypes = [...defaultMealTypes, ...customMealTypes];
 
   const fetchContentFromEdgeFunction = async (url: string): Promise<string> => {
     try {
@@ -227,11 +231,11 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
                 disabled={isLoading}
               >
                 <option value="">None</option>
-                <option value="pasta">Pasta</option>
-                <option value="pancakes">Pancakes</option>
-                <option value="muffins">Muffins</option>
-                <option value="curries">Curries</option>
-                <option value="paratha">Paratha</option>
+                {allMealTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -294,11 +298,11 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
                 disabled={isLoading}
               >
                 <option value="">None</option>
-                <option value="pasta">Pasta</option>
-                <option value="pancakes">Pancakes</option>
-                <option value="muffins">Muffins</option>
-                <option value="curries">Curries</option>
-                <option value="paratha">Paratha</option>
+                {allMealTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
