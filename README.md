@@ -1,6 +1,6 @@
-# ToddlerChef 🍳 [https://toddlerchef.netlify.app/]
+# Toddler Chef 🍳 [https://toddlerchef.netlify.app/]
 
-Your lifeline for feeding little ones without the stress. Built for busy moms juggling a million things, ToddlerChef helps you save, organize, and quickly find toddler-friendly recipes from Instagram, TikTok or any other website. No more scrolling through endless saved posts or wondering what to make for lunch - just quick, easy meal ideas when you need them most.
+Quick Recipes for Busy Parents. Save, organize, and discover meal ideas from Instagram, TikTok, and recipe websites. Filter by ingredients you have, dietary needs, and cooking time. Perfect for when you're in a rush and need inspiration fast.
 
 ![PantryPulse](https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=1200)
 
@@ -21,18 +21,21 @@ Your lifeline for feeding little ones without the stress. Built for busy moms ju
 - **Smart Scraping**: Uses Recipe Schema (JSON-LD) markup to extract structured data from recipe websites
 - **Flexible Input**: Manual paste option for quick recipe entry when auto-scraping isn't available
 
-### 📚 Smart Organization
+### 📚 Smart Organization & Filtering
 - **Category System**: Organize by Breakfast, Lunch, Dinner, and Snacks
-- **Advanced Filtering**:
-  - Time-based (Quick: <20min, Medium: 20-40min, Long: 40min+)
-  - Difficulty levels (Easy, Medium, Hard)
-  - Category filtering
-  - Search functionality
-- **Ingredient Tagging**: Automatic tagging for quick discovery
+- **Pantry Pulse**: Tap ingredients you have on hand to find matching recipes
+- **Advanced Filters**:
+  - Quick time filters: Under 10 min, Under 20 min
+  - High-protein recipes
+  - Vegetarian options
+  - Specific meat types (Chicken, Beef, Fish)
+  - Allergy filters: No Dairy, No Gluten, No Nuts, No Eggs
+  - Filter by ingredients you have at home
 
-### 🎲 Panic Mode™
-- **"I'm Hungry" Button**: Random recipe suggestions when decision fatigue hits
-- **Category Quick Picks**: One-click breakfast, lunch, or dinner suggestions
+### 🎲 Quick Filter Buttons
+- **Under 10 Minutes**: Lightning-fast meal ideas
+- **Under 20 Minutes**: Quick and easy recipes
+- **High Protein**: Protein-packed meals for growing toddlers
 - **Perfect for Busy Days**: Eliminate meal planning paralysis
 
 ### 🎨 Beautiful Interface
@@ -52,8 +55,8 @@ Your lifeline for feeding little ones without the stress. Built for busy moms ju
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/pantrypulse.git
-   cd pantrypulse
+   git clone https://github.com/yourusername/toddlerchef.git
+   cd toddlerchef
    ```
 
 2. **Install dependencies**
@@ -113,13 +116,11 @@ Your lifeline for feeding little ones without the stress. Built for busy moms ju
 5. Select a category and click "Save Recipe"
 
 ### Finding Recipes
-- Use the search bar to find recipes by name or ingredient
-- Apply filters for time, difficulty, or category
-- Browse through your organized recipe collection
-
-### Panic Mode
-- Click "I'm Hungry" for a random recipe suggestion
-- Or use the category quick picks (Breakfast, Lunch, Dinner)
+- **Pantry Pulse**: Tap ingredients you have (eggs, banana, chicken, etc.) to find recipes that use them
+- **Quick Filters**: Use the panic buttons for Under 10 min, Under 20 min, or High Protein recipes
+- **Advanced Filters**: Toggle vegetarian mode, select meat types, or exclude allergens
+- **Categories**: Browse by Breakfast, Lunch, Dinner, or Snacks
+- All filters work together to help you find the perfect recipe fast
 
 ## 🛠️ Tech Stack
 
@@ -133,14 +134,14 @@ Your lifeline for feeding little ones without the stress. Built for busy moms ju
 ## 📁 Project Structure
 
 ```
-pantrypulse/
+toddlerchef/
 ├── src/
 │   ├── components/
-│   │   ├── Dashboard.tsx       # Main recipe dashboard
-│   │   ├── Filters.tsx         # Filter controls
+│   │   ├── Dashboard.tsx       # Main app dashboard
+│   │   ├── Filters.tsx         # Advanced filtering UI
 │   │   ├── LinkParser.tsx      # Recipe import UI
-│   │   ├── PanicButtons.tsx    # Random recipe picker
-│   │   ├── PantryPulse.tsx     # Main app component
+│   │   ├── PanicButtons.tsx    # Quick time/protein filters
+│   │   ├── PantryPulse.tsx     # Ingredient selector
 │   │   └── RecipeCard.tsx      # Recipe display card
 │   ├── lib/
 │   │   ├── supabase.ts         # Supabase client
@@ -171,6 +172,7 @@ recipes (
   difficulty text,
   description text,
   instructions text[],
+  staple_tags text[],        -- For Pantry Pulse filtering
   tags text[],
   image_url text,
   created_at timestamptz
@@ -204,11 +206,13 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 - [ ] User authentication and personal recipe collections
 - [ ] Meal planning calendar
-- [ ] Grocery list generation from recipes
+- [ ] Grocery list generation from selected recipes
 - [ ] Recipe sharing and social features
 - [ ] Nutritional information extraction
-- [ ] Recipe ratings and reviews
+- [ ] Recipe ratings and favorites
 - [ ] Export recipes to PDF
+- [ ] Save custom pantry staples
+- [ ] More allergen filters
 - [ ] Mobile app (React Native)
 
 ## 📧 Contact
@@ -217,4 +221,4 @@ Have questions or suggestions? Open an issue or reach out!
 
 ---
 
-Made with ❤️ for mom cooks everywhere
+Made with care for busy parents everywhere
