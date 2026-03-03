@@ -1,24 +1,20 @@
 import { useState } from 'react';
-import { Zap, ChevronDown, Leaf } from 'lucide-react';
+import { ChevronDown, Leaf } from 'lucide-react';
 import { COMMON_INGREDIENTS } from '../types/recipe';
 
 interface FiltersProps {
-  speedFilter: boolean;
   selectedIngredients: string[];
   vegetarianFilter: boolean;
   meatTypeFilter: string | null;
-  onSpeedFilterChange: (value: boolean) => void;
   onIngredientsChange: (ingredients: string[]) => void;
   onVegetarianFilterChange: (value: boolean) => void;
   onMeatTypeFilterChange: (value: string | null) => void;
 }
 
 export function Filters({
-  speedFilter,
   selectedIngredients,
   vegetarianFilter,
   meatTypeFilter,
-  onSpeedFilterChange,
   onIngredientsChange,
   onVegetarianFilterChange,
   onMeatTypeFilterChange,
@@ -39,18 +35,6 @@ export function Filters({
   return (
     <div className="bg-white rounded-xl shadow-md p-4 mb-6 border-2 border-gray-100">
       <div className="flex flex-col sm:flex-row gap-4">
-        <button
-          onClick={() => onSpeedFilterChange(!speedFilter)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
-            speedFilter
-              ? 'bg-green-500 text-white shadow-md'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
-        >
-          <Zap size={18} />
-          Under 15 Minutes
-        </button>
-
         <button
           onClick={() => {
             onVegetarianFilterChange(!vegetarianFilter);

@@ -14,7 +14,6 @@ export function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
   const [panicFilter, setPanicFilter] = useState<string | null>(null);
   const [selectedStaples, setSelectedStaples] = useState<string[]>([]);
-  const [speedFilter, setSpeedFilter] = useState(false);
   const [vegetarianFilter, setVegetarianFilter] = useState(false);
   const [meatTypeFilter, setMeatTypeFilter] = useState<string | null>(null);
 
@@ -72,10 +71,6 @@ export function Dashboard() {
       if (!hasProtein) {
         return false;
       }
-    }
-
-    if (speedFilter && recipe.prep_time > 15) {
-      return false;
     }
 
     if (vegetarianFilter) {
@@ -148,18 +143,11 @@ export function Dashboard() {
           onFilterChange={setPanicFilter}
         />
 
-        <PantryPulse
-          selectedStaples={selectedStaples}
-          onStapleToggle={handleStapleToggle}
-        />
-
         <div className="px-4">
           <Filters
-            speedFilter={speedFilter}
             selectedIngredients={selectedStaples}
             vegetarianFilter={vegetarianFilter}
             meatTypeFilter={meatTypeFilter}
-            onSpeedFilterChange={setSpeedFilter}
             onIngredientsChange={(ingredients) => {
               setSelectedStaples(ingredients);
             }}
