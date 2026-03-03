@@ -1,21 +1,32 @@
 import { useState } from 'react';
-import { Zap, ChevronDown } from 'lucide-react';
+import { Zap, ChevronDown, Leaf } from 'lucide-react';
 import { COMMON_INGREDIENTS } from '../types/recipe';
 
 interface FiltersProps {
   speedFilter: boolean;
   selectedIngredients: string[];
+  vegetarianFilter: boolean;
+  meatTypeFilter: string | null;
   onSpeedFilterChange: (value: boolean) => void;
   onIngredientsChange: (ingredients: string[]) => void;
+  onVegetarianFilterChange: (value: boolean) => void;
+  onMeatTypeFilterChange: (value: string | null) => void;
 }
 
 export function Filters({
   speedFilter,
   selectedIngredients,
+  vegetarianFilter,
+  meatTypeFilter,
   onSpeedFilterChange,
   onIngredientsChange,
+  onVegetarianFilterChange,
+  onMeatTypeFilterChange,
 }: FiltersProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMeatDropdownOpen, setIsMeatDropdownOpen] = useState(false);
+
+  const meatTypes = ['Chicken', 'Beef', 'Pork', 'Fish', 'Turkey', 'Lamb'];
 
   const handleIngredientToggle = (ingredient: string) => {
     if (selectedIngredients.includes(ingredient)) {
@@ -39,6 +50,75 @@ export function Filters({
           <Zap size={18} />
           Under 15 Minutes
         </button>
+
+        <button
+          onClick={() => {
+            onVegetarianFilterChange(!vegetarianFilter);
+            if (!vegetarianFilter && meatTypeFilter) {
+              onMeatTypeFilterChange(null);
+            }
+          }}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+            vegetarianFilter
+              ? 'bg-green-600 text-white shadow-md'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <Leaf size={18} />
+          Vegetarian
+        </button>
+
+        <div className="relative">
+          <button
+            onClick={() => !vegetarianFilter && setIsMeatDropdownOpen(!isMeatDropdownOpen)}
+            disabled={vegetarianFilter}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+              vegetarianFilter
+                ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                : meatTypeFilter
+                ? 'bg-orange-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <span>
+              {meatTypeFilter || 'Meat Type'}
+            </span>
+            <ChevronDown
+              size={16}
+              className={`transition-transform ${isMeatDropdownOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          {isMeatDropdownOpen && !vegetarianFilter && (
+            <div className="absolute top-full left-0 mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-10 p-2 min-w-[150px]">
+              <button
+                onClick={() => {
+                  onMeatTypeFilterChange(null);
+                  setIsMeatDropdownOpen(false);
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm text-gray-700"
+              >
+                All Meats
+              </button>
+              {meatTypes.map((meat) => (
+                <button
+                  key={meat}
+                  onClick={() => {
+                    onMeatTypeFilterChange(meat);
+                    setIsMeatDropdownOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 hover:bg-orange-50 rounded text-sm ${
+                    meatTypeFilter === meat
+                      ? 'bg-orange-100 text-orange-700 font-semibold'
+                      : 'text-gray-700'
+                  }`}
+                >
+                  {meat}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="relative flex-1">
           <button

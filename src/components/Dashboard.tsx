@@ -5,6 +5,7 @@ import { LinkParser } from './LinkParser';
 import { PanicButtons } from './PanicButtons';
 import { PantryPulse } from './PantryPulse';
 import { RecipeCard } from './RecipeCard';
+import { Filters } from './Filters';
 import type { Recipe, Category } from '../types/recipe';
 
 export function Dashboard() {
@@ -13,6 +14,9 @@ export function Dashboard() {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
   const [panicFilter, setPanicFilter] = useState<string | null>(null);
   const [selectedStaples, setSelectedStaples] = useState<string[]>([]);
+  const [speedFilter, setSpeedFilter] = useState(false);
+  const [vegetarianFilter, setVegetarianFilter] = useState(false);
+  const [meatTypeFilter, setMeatTypeFilter] = useState<string | null>(null);
 
   const fetchRecipes = async () => {
     setIsLoading(true);
@@ -70,6 +74,36 @@ export function Dashboard() {
       }
     }
 
+    if (speedFilter && recipe.prep_time > 15) {
+      return false;
+    }
+
+    if (vegetarianFilter) {
+      const meatKeywords = ['chicken', 'beef', 'pork', 'fish', 'turkey', 'lamb', 'bacon', 'sausage', 'ham', 'shrimp', 'salmon', 'tuna', 'steak', 'meat'];
+      const recipeText = [
+        ...recipe.ingredients,
+        ...(recipe.staple_tags || []),
+        recipe.title
+      ].join(' ').toLowerCase();
+
+      const hasMeat = meatKeywords.some(keyword => recipeText.includes(keyword));
+      if (hasMeat) {
+        return false;
+      }
+    }
+
+    if (meatTypeFilter) {
+      const recipeText = [
+        ...recipe.ingredients,
+        ...(recipe.staple_tags || []),
+        recipe.title
+      ].join(' ').toLowerCase();
+
+      if (!recipeText.includes(meatTypeFilter.toLowerCase())) {
+        return false;
+      }
+    }
+
     if (selectedStaples.length > 0) {
       const hasAllStaples = selectedStaples.every((staple) =>
         recipe.staple_tags?.some((tag) =>
@@ -120,6 +154,19 @@ export function Dashboard() {
         />
 
         <div className="px-4">
+          <Filters
+            speedFilter={speedFilter}
+            selectedIngredients={selectedStaples}
+            vegetarianFilter={vegetarianFilter}
+            meatTypeFilter={meatTypeFilter}
+            onSpeedFilterChange={setSpeedFilter}
+            onIngredientsChange={(ingredients) => {
+              setSelectedStaples(ingredients);
+            }}
+            onVegetarianFilterChange={setVegetarianFilter}
+            onMeatTypeFilterChange={setMeatTypeFilter}
+          />
+
           <LinkParser onRecipeAdded={fetchRecipes} />
 
           <div className="mb-8 flex flex-wrap gap-3 justify-center">
