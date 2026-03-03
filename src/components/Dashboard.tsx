@@ -170,7 +170,7 @@ export function Dashboard() {
             </h1>
           </div>
           <p className="text-xl text-sage-600 font-bold">
-            The 15-Minute Survival Tool
+            Quick Recipes for Busy Parents
           </p>
         </header>
 
