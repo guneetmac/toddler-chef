@@ -5,6 +5,7 @@ export interface Recipe {
   prep_time: number;
   ingredients: string[];
   category: 'breakfast' | 'lunch' | 'dinner' | 'snacks';
+  meal_type: MealType | null;
   created_at: string;
   difficulty_tier: 'Quick' | 'Medium' | 'Project';
   one_sentence_summary: string | null;
@@ -14,6 +15,7 @@ export interface Recipe {
 }
 
 export type Category = 'breakfast' | 'lunch' | 'dinner' | 'snacks';
+export type MealType = 'pasta' | 'pancakes' | 'muffins' | 'curries' | 'paratha';
 
 export const COMMON_INGREDIENTS = [
   'Eggs',

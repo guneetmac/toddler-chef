@@ -6,7 +6,7 @@ import { PanicButtons } from './PanicButtons';
 import { PantryPulse } from './PantryPulse';
 import { RecipeCard } from './RecipeCard';
 import { Filters } from './Filters';
-import type { Recipe, Category } from '../types/recipe';
+import type { Recipe, Category, MealType } from '../types/recipe';
 
 export function Dashboard() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -17,6 +17,7 @@ export function Dashboard() {
   const [vegetarianFilter, setVegetarianFilter] = useState(false);
   const [meatTypeFilter, setMeatTypeFilter] = useState<string | null>(null);
   const [allergyFilters, setAllergyFilters] = useState<string[]>([]);
+  const [mealTypeFilter, setMealTypeFilter] = useState<MealType | null>(null);
 
   const fetchRecipes = async () => {
     setIsLoading(true);
@@ -148,6 +149,10 @@ export function Dashboard() {
       }
     }
 
+    if (mealTypeFilter && recipe.meal_type !== mealTypeFilter) {
+      return false;
+    }
+
     return true;
   });
 
@@ -185,12 +190,14 @@ export function Dashboard() {
             vegetarianFilter={vegetarianFilter}
             meatTypeFilter={meatTypeFilter}
             allergyFilters={allergyFilters}
+            mealTypeFilter={mealTypeFilter}
             onIngredientsChange={(ingredients) => {
               setSelectedStaples(ingredients);
             }}
             onVegetarianFilterChange={setVegetarianFilter}
             onMeatTypeFilterChange={setMeatTypeFilter}
             onAllergyFiltersChange={setAllergyFilters}
+            onMealTypeFilterChange={setMealTypeFilter}
           />
 
           <LinkParser onRecipeAdded={fetchRecipes} />

@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { ChevronDown, Leaf, AlertCircle, Plus, X } from 'lucide-react';
-import { COMMON_INGREDIENTS } from '../types/recipe';
+import { COMMON_INGREDIENTS, MealType } from '../types/recipe';
 
 interface FiltersProps {
   selectedIngredients: string[];
   vegetarianFilter: boolean;
   meatTypeFilter: string | null;
   allergyFilters: string[];
+  mealTypeFilter: MealType | null;
   onIngredientsChange: (ingredients: string[]) => void;
   onVegetarianFilterChange: (value: boolean) => void;
   onMeatTypeFilterChange: (value: string | null) => void;
   onAllergyFiltersChange: (filters: string[]) => void;
+  onMealTypeFilterChange: (value: MealType | null) => void;
 }
 
 export function Filters({
@@ -18,20 +20,28 @@ export function Filters({
   vegetarianFilter,
   meatTypeFilter,
   allergyFilters,
+  mealTypeFilter,
   onIngredientsChange,
   onVegetarianFilterChange,
   onMeatTypeFilterChange,
   onAllergyFiltersChange,
+  onMealTypeFilterChange,
 }: FiltersProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMeatDropdownOpen, setIsMeatDropdownOpen] = useState(false);
   const [isAllergyDropdownOpen, setIsAllergyDropdownOpen] = useState(false);
+  const [isMealTypeDropdownOpen, setIsMealTypeDropdownOpen] = useState(false);
   const [customIngredients, setCustomIngredients] = useState<string[]>([]);
+  const [customMealTypes, setCustomMealTypes] = useState<string[]>([]);
   const [newIngredient, setNewIngredient] = useState('');
+  const [newMealType, setNewMealType] = useState('');
   const [showAddInput, setShowAddInput] = useState(false);
+  const [showMealTypeInput, setShowMealTypeInput] = useState(false);
 
   const meatTypes = ['Chicken', 'Beef', 'Pork', 'Fish', 'Turkey', 'Lamb'];
   const allergyOptions = ['No Dairy', 'No Gluten', 'No Nuts', 'No Eggs'];
+  const defaultMealTypes: MealType[] = ['pasta', 'pancakes', 'muffins', 'curries', 'paratha'];
+  const allMealTypes = [...defaultMealTypes, ...customMealTypes];
 
   const allIngredients = [...COMMON_INGREDIENTS, ...customIngredients];
 
@@ -67,9 +77,25 @@ export function Filters({
     }
   };
 
+  const handleAddMealType = () => {
+    const trimmedMealType = newMealType.trim().toLowerCase();
+    if (trimmedMealType && !allMealTypes.includes(trimmedMealType as MealType)) {
+      setCustomMealTypes([...customMealTypes, trimmedMealType]);
+      setNewMealType('');
+      setShowMealTypeInput(false);
+    }
+  };
+
+  const handleDeleteCustomMealType = (mealType: string) => {
+    setCustomMealTypes(customMealTypes.filter((m) => m !== mealType));
+    if (mealTypeFilter === mealType) {
+      onMealTypeFilterChange(null);
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-md p-4 mb-6 border-2 border-gray-100">
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
         <button
           onClick={() => {
             onVegetarianFilterChange(!vegetarianFilter);
@@ -186,6 +212,114 @@ export function Filters({
                   </label>
                 ))}
               </div>
+            </div>
+          )}
+        </div>
+
+        <div className="relative">
+          <button
+            onClick={() => setIsMealTypeDropdownOpen(!isMealTypeDropdownOpen)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+              mealTypeFilter
+                ? 'bg-blue-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <span>
+              {mealTypeFilter ? mealTypeFilter.charAt(0).toUpperCase() + mealTypeFilter.slice(1) : 'Meal Type'}
+            </span>
+            <ChevronDown
+              size={16}
+              className={`transition-transform ${isMealTypeDropdownOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          {isMealTypeDropdownOpen && (
+            <div className="absolute top-full left-0 mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl z-10 p-2 min-w-[180px] max-h-80 overflow-y-auto">
+              <div className="mb-2 pb-2 border-b border-gray-200">
+                {showMealTypeInput ? (
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      value={newMealType}
+                      onChange={(e) => setNewMealType(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddMealType()}
+                      placeholder="e.g., tacos"
+                      className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleAddMealType}
+                      className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                    >
+                      <Plus size={14} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowMealTypeInput(false);
+                        setNewMealType('');
+                      }}
+                      className="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowMealTypeInput(true)}
+                    className="w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors font-medium text-xs"
+                  >
+                    <Plus size={14} />
+                    Add Custom
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={() => {
+                  onMealTypeFilterChange(null);
+                  setIsMealTypeDropdownOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm ${
+                  mealTypeFilter === null
+                    ? 'bg-gray-100 text-gray-900 font-semibold'
+                    : 'text-gray-700'
+                }`}
+              >
+                All Types
+              </button>
+              {allMealTypes.map((mealType) => {
+                const isCustom = customMealTypes.includes(mealType);
+                return (
+                  <div key={mealType} className="flex items-center gap-1 group">
+                    <button
+                      onClick={() => {
+                        onMealTypeFilterChange(mealType as MealType);
+                        setIsMealTypeDropdownOpen(false);
+                      }}
+                      className={`flex-1 text-left px-3 py-2 hover:bg-blue-50 rounded text-sm ${
+                        mealTypeFilter === mealType
+                          ? 'bg-blue-100 text-blue-700 font-semibold'
+                          : 'text-gray-700'
+                      }`}
+                    >
+                      {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
+                    </button>
+                    {isCustom && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteCustomMealType(mealType);
+                        }}
+                        className="p-1 text-gray-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Delete custom meal type"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

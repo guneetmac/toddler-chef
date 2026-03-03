@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link2, Plus, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { extractRecipe } from '../lib/recipeExtractor';
-import type { Category } from '../types/recipe';
+import type { Category, MealType } from '../types/recipe';
 
 interface LinkParserProps {
   onRecipeAdded: () => void;
@@ -12,6 +12,7 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
   const [url, setUrl] = useState('');
   const [manualContent, setManualContent] = useState('');
   const [category, setCategory] = useState<Category>('breakfast');
+  const [mealType, setMealType] = useState<MealType | ''>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
@@ -90,7 +91,8 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
           one_sentence_summary: extracted.one_sentence_summary,
           staple_tags: extracted.staple_tags,
           steps: extracted.steps,
-          category
+          category,
+          meal_type: mealType || null
         }]);
 
       if (insertError) {
@@ -100,6 +102,7 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
 
       setUrl('');
       setManualContent('');
+      setMealType('');
       setShowManualInput(false);
       onRecipeAdded();
     } catch (err) {
@@ -139,7 +142,8 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
           one_sentence_summary: extracted.one_sentence_summary,
           staple_tags: extracted.staple_tags,
           steps: extracted.steps,
-          category
+          category,
+          meal_type: mealType || null
         }]);
 
       if (insertError) {
@@ -149,6 +153,7 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
 
       setUrl('');
       setManualContent('');
+      setMealType('');
       setShowManualInput(false);
       onRecipeAdded();
     } catch (err) {
@@ -197,19 +202,38 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
-              className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800"
-              disabled={isLoading}
-            >
-              <option value="breakfast">Breakfast</option>
-              <option value="lunch">Lunch</option>
-              <option value="dinner">Dinner</option>
-              <option value="snacks">Snacks</option>
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as Category)}
+                className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800"
+                disabled={isLoading}
+              >
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="snacks">Snacks</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Meal Type (optional)</label>
+              <select
+                value={mealType}
+                onChange={(e) => setMealType(e.target.value as MealType | '')}
+                className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800"
+                disabled={isLoading}
+              >
+                <option value="">None</option>
+                <option value="pasta">Pasta</option>
+                <option value="pancakes">Pancakes</option>
+                <option value="muffins">Muffins</option>
+                <option value="curries">Curries</option>
+                <option value="paratha">Paratha</option>
+              </select>
+            </div>
           </div>
 
           {error && (
@@ -245,19 +269,38 @@ export function LinkParser({ onRecipeAdded }: LinkParserProps) {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as Category)}
-              className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800"
-              disabled={isLoading}
-            >
-              <option value="breakfast">Breakfast</option>
-              <option value="lunch">Lunch</option>
-              <option value="dinner">Dinner</option>
-              <option value="snacks">Snacks</option>
-            </select>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as Category)}
+                className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800"
+                disabled={isLoading}
+              >
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="snacks">Snacks</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Meal Type (optional)</label>
+              <select
+                value={mealType}
+                onChange={(e) => setMealType(e.target.value as MealType | '')}
+                className="w-full px-4 py-3 rounded-lg border-2 border-sage-300 focus:border-sage-500 focus:outline-none text-gray-800"
+                disabled={isLoading}
+              >
+                <option value="">None</option>
+                <option value="pasta">Pasta</option>
+                <option value="pancakes">Pancakes</option>
+                <option value="muffins">Muffins</option>
+                <option value="curries">Curries</option>
+                <option value="paratha">Paratha</option>
+              </select>
+            </div>
           </div>
 
           {error && (
