@@ -1,0 +1,19 @@
+{
+  "skills": [
+    {
+      "name": "migration",
+      "description": "Create a new Supabase migration file for this project",
+      "prompt": "Create a new Supabase SQL migration file for this project. Migration files live in supabase/migrations/ and must be named with a timestamp prefix in the format YYYYMMDDHHMMSS_description.sql (e.g. 20260308120000_add_column.sql). Use the current date and time for the timestamp. Follow the existing migration style: include a comment block at the top describing the change, use IF NOT EXISTS / IF EXISTS guards, and keep it idempotent where possible. Ask the user what schema change they want to make if not already specified."
+    },
+    {
+      "name": "add-filter",
+      "description": "Add a new filter dimension to the recipe filtering system",
+      "prompt": "Add a new filter to the Toddler Chef recipe filtering system. The pattern to follow: 1) Add filter state to Dashboard.tsx and pass it as a prop to Filters.tsx, 2) Add the filter UI inside Filters.tsx (follow the existing dropdown or toggle pattern), 3) Add the filter logic to the filteredRecipes computation in Dashboard.tsx. Filtering is done entirely client-side. Use the sage/warmOrange Tailwind color scales for styling. Ask the user what filter they want to add if not already specified."
+    },
+    {
+      "name": "add-meal-type",
+      "description": "Add a new default meal type to the app",
+      "prompt": "Add a new default meal type to the Toddler Chef app. Changes needed: 1) Add the new type to the MealType union in src/types/recipe.ts, 2) Add it to the defaultMealTypes arrays in both src/components/Filters.tsx and src/components/LinkParser.tsx, 3) Create a new migration in supabase/migrations/ that updates the valid_meal_type check constraint on the recipes table to include the new value. Ask the user which meal type to add if not already specified."
+    }
+  ]
+}
