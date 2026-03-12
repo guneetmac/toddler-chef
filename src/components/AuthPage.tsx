@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChefHat } from 'lucide-react';
+import { ChefHat, Check, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export function AuthPage() {
@@ -11,6 +11,15 @@ export function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  const passwordChecks = {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+  };
+  const passwordValid = Object.values(passwordChecks).every(Boolean);
 
   const switchMode = (newMode: 'signin' | 'signup') => {
     setMode(newMode);
@@ -26,6 +35,11 @@ export function AuthPage() {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
+
+    if (mode === 'signup' && !passwordValid) {
+      setError('Please meet all password requirements');
+      return;
+    }
 
     if (mode === 'signup' && password !== confirmPassword) {
       setError('Passwords do not match');
@@ -109,12 +123,13 @@ export function AuthPage() {
                 </button>
               </form>
 
-              <p className="text-center text-sm text-gray-500 mt-6">
-                Don't have an account?{' '}
-                <button onClick={() => switchMode('signup')} className="text-sage-600 font-bold hover:underline">
-                  Register now
+              <div className="mt-6 p-4 bg-sage-50 rounded-xl border border-sage-200 text-center">
+                <p className="text-sm text-sage-700 font-medium">New to Toddler Chef?</p>
+                <p className="text-xs text-sage-600 mt-1 mb-3">Create a free account to save and manage your family's recipes.</p>
+                <button onClick={() => switchMode('signup')} className="w-full bg-sage-600 hover:bg-sage-700 text-white font-bold py-2 rounded-xl transition-colors text-sm">
+                  Create a free account
                 </button>
-              </p>
+              </div>
             </>
           ) : (
             <>
@@ -150,11 +165,28 @@ export function AuthPage() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Min. 6 characters"
+                    placeholder="Create a strong password"
                     required
-                    minLength={6}
                     className="w-full px-4 py-3 rounded-xl border-2 border-sage-200 focus:border-sage-500 focus:outline-none text-gray-800"
                   />
+                  {password.length > 0 && (
+                    <div className="mt-2 grid grid-cols-2 gap-1">
+                      {[
+                        { key: 'length', label: 'At least 8 characters' },
+                        { key: 'uppercase', label: 'One uppercase letter' },
+                        { key: 'lowercase', label: 'One lowercase letter' },
+                        { key: 'number', label: 'One number' },
+                        { key: 'special', label: 'One special character' },
+                      ].map(({ key, label }) => (
+                        <div key={key} className="flex items-center gap-1">
+                          {passwordChecks[key as keyof typeof passwordChecks]
+                            ? <Check size={12} className="text-green-500 shrink-0" />
+                            : <X size={12} className="text-red-400 shrink-0" />}
+                          <span className={`text-xs ${passwordChecks[key as keyof typeof passwordChecks] ? 'text-green-600' : 'text-gray-400'}`}>{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
@@ -173,7 +205,7 @@ export function AuthPage() {
 
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || !passwordValid || password !== confirmPassword}
                   className="w-full bg-warmOrange-500 hover:bg-warmOrange-600 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Creating account...' : 'Register Now'}
