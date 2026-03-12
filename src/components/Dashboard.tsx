@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ChefHat, Search, X } from 'lucide-react';
+import { ChefHat, Search, X, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../lib/AuthContext';
 import { LinkParser } from './LinkParser';
 import { PanicButtons } from './PanicButtons';
 import { PantryPulse } from './PantryPulse';
@@ -9,6 +10,7 @@ import { Filters } from './Filters';
 import type { Recipe, Category, MealType } from '../types/recipe';
 
 export function Dashboard() {
+  const { user } = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
@@ -198,6 +200,16 @@ export function Dashboard() {
           <p className="text-xl text-sage-600 font-bold">
             Quick Recipes for Busy Parents
           </p>
+          <div className="flex items-center justify-end px-4 mt-2">
+            <span className="text-sm text-sage-600 mr-3">{user?.email}</span>
+            <button
+              onClick={() => supabase.auth.signOut()}
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-500 transition-colors"
+            >
+              <LogOut size={16} />
+              Sign out
+            </button>
+          </div>
         </header>
 
         <PanicButtons
