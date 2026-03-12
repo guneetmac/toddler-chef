@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChefHat } from 'lucide-react';
+import { ChefHat, Search, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { LinkParser } from './LinkParser';
 import { PanicButtons } from './PanicButtons';
@@ -19,6 +19,7 @@ export function Dashboard() {
   const [allergyFilters, setAllergyFilters] = useState<string[]>([]);
   const [mealTypeFilter, setMealTypeFilter] = useState<MealType | null>(null);
   const [customMealTypes, setCustomMealTypes] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchRecipes = async () => {
     setIsLoading(true);
@@ -50,6 +51,19 @@ export function Dashboard() {
   };
 
   const filteredRecipes = recipes.filter((recipe) => {
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase().replace(/s$/, ''); // strip trailing 's' for basic stemming
+      const searchText = [
+        recipe.title,
+        recipe.one_sentence_summary || '',
+        ...(recipe.ingredients || []),
+        ...(recipe.staple_tags || []),
+        recipe.category,
+        recipe.meal_type || '',
+      ].join(' ').toLowerCase();
+      if (!searchText.includes(q)) return false;
+    }
+
     if (selectedCategory !== 'all' && recipe.category !== selectedCategory) {
       return false;
     }
@@ -213,6 +227,25 @@ export function Dashboard() {
             onRecipeAdded={fetchRecipes}
             customMealTypes={customMealTypes}
           />
+
+          <div className="relative mb-6 max-w-md mx-auto">
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search recipes... (e.g. pancakes, chicken, pasta)"
+              className="w-full pl-10 pr-10 py-3 rounded-2xl border-2 border-sage-200 focus:border-sage-500 focus:outline-none text-gray-800 placeholder-gray-400 bg-white shadow-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
 
           <div className="mb-8 flex flex-wrap gap-3 justify-center">
             {categories.map((category) => (
