@@ -1,11 +1,15 @@
-import { Clock, ExternalLink } from 'lucide-react';
+import { useState } from 'react';
+import { Clock, ExternalLink, Pencil } from 'lucide-react';
 import type { Recipe } from '../types/recipe';
+import { EditRecipeModal } from './EditRecipeModal';
 
 interface RecipeCardProps {
   recipe: Recipe;
+  onUpdated: () => void;
 }
 
-export function RecipeCard({ recipe }: RecipeCardProps) {
+export function RecipeCard({ recipe, onUpdated }: RecipeCardProps) {
+  const [showEdit, setShowEdit] = useState(false);
   const categoryEmojis = {
     breakfast: '🌅',
     lunch: '☀️',
@@ -24,7 +28,14 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
   return (
     <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all overflow-hidden border-2 border-gray-200 hover:border-sage-400 transform hover:scale-[1.02]">
       <div className="relative">
-        <div className="absolute top-3 right-3 z-10">
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+          <button
+            onClick={() => setShowEdit(true)}
+            className="p-2 bg-white/90 hover:bg-white rounded-full shadow-md text-gray-500 hover:text-sage-700 transition-all"
+            title="Edit recipe"
+          >
+            <Pencil size={15} />
+          </button>
           <div className={`${timeBadgeColor} text-white px-4 py-3 rounded-full shadow-lg`}>
             <div className="flex items-center gap-2">
               <Clock size={20} strokeWidth={3} />
@@ -119,6 +130,13 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           </a>
         )}
       </div>
+      {showEdit && (
+        <EditRecipeModal
+          recipe={recipe}
+          onSaved={() => { setShowEdit(false); onUpdated(); }}
+          onDismiss={() => setShowEdit(false)}
+        />
+      )}
     </div>
   );
 }
