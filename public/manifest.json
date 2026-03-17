@@ -1,0 +1,24 @@
+{
+  "name": "Toddler Chef",
+  "short_name": "Toddler Chef",
+  "description": "Quick Recipes for Busy Parents",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f8f6",
+  "theme_color": "#486148",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "url": "import_url",
+      "text": "import_text"
+    }
+  }
+}
