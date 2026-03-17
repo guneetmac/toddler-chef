@@ -134,7 +134,7 @@ function generateRecipeName(text: string): string {
   for (let i = 0; i < Math.min(3, lines.length); i++) {
     const line = lines[i];
     const cleaned = line.replace(/^[#*🍳🥗🍽️👶🧒👧👦💚✨🌟⭐️]+\s*/, '')
-                       .replace(/[!]+$/, '')
+                       .replace(/[!\s—–-]+$/, '')
                        .trim();
 
     if (cleaned &&
