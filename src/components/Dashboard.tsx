@@ -8,6 +8,7 @@ import { PantryPulse } from './PantryPulse';
 import { RecipeCard } from './RecipeCard';
 import { Filters } from './Filters';
 import { ImportGuide } from './ImportGuide';
+import { ImportModal } from './ImportModal';
 import type { Recipe, Category, MealType } from '../types/recipe';
 
 export function Dashboard() {
@@ -24,6 +25,7 @@ export function Dashboard() {
   const [mealTypeFilter, setMealTypeFilter] = useState<MealType | null>(null);
   const [customMealTypes, setCustomMealTypes] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [importData, setImportData] = useState<{ url: string; text: string } | null>(null);
 
   const fetchRecipes = async () => {
     setIsLoading(true);
@@ -44,6 +46,16 @@ export function Dashboard() {
 
   useEffect(() => {
     fetchRecipes();
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const importUrl = params.get('import_url') || params.get('url') || '';
+    const importText = params.get('import_text') || params.get('text') || '';
+    if (importUrl || importText) {
+      setImportData({ url: importUrl, text: importText });
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, []);
 
   const handleStapleToggle = (staple: string) => {
@@ -327,6 +339,14 @@ export function Dashboard() {
         </div>
       </div>
       {showImportGuide && <ImportGuide onClose={() => setShowImportGuide(false)} />}
+      {importData && (
+        <ImportModal
+          importUrl={importData.url}
+          importText={importData.text}
+          onComplete={() => { setImportData(null); fetchRecipes(); }}
+          onDismiss={() => setImportData(null)}
+        />
+      )}
     </div>
   );
 }
