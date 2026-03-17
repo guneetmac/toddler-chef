@@ -1,8 +1,16 @@
 import { useState } from 'react';
 import { Link2, Bookmark, Smartphone, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 
+interface StructuredRecipe {
+  name: string;
+  description: string;
+  totalTimeMinutes: number;
+  ingredients: string[];
+  steps: string[];
+}
+
 interface LinkParserProps {
-  onImportData: (data: { url: string; text: string }) => void;
+  onImportData: (data: { url: string; text: string; structured: StructuredRecipe | null }) => void;
 }
 
 const BOOKMARKLET = `javascript:(function(){var u=location.href;var t='';try{var selectors=['h1._ap3a','div._a9zs span','div[class*="x1lliihq"] span','span[class*="x193iq5w"]','[data-e2e="browse-video-desc"]','[data-e2e="video-desc"]'];for(var i=0;i<selectors.length;i++){var el=document.querySelector(selectors[i]);if(el&&el.innerText&&el.innerText.length>20){t=el.innerText;break;}}if(!t){var spans=document.querySelectorAll('span');var best='';for(var j=0;j<spans.length;j++){var txt=spans[j].innerText||'';if(txt.length>best.length&&txt.length<3000&&!txt.includes('Follow')&&!txt.includes('following')){best=txt;}}t=best;}}catch(e){}var base='https://toddlerchef.netlify.app';window.open(base+'?import_url='+encodeURIComponent(u)+'&import_text='+encodeURIComponent(t),'_blank');})();`;
@@ -42,7 +50,7 @@ export function LinkParser({ onImportData }: LinkParserProps) {
       if (!response.ok) throw new Error(`Scrape failed: ${response.status}`);
       const data = await response.json();
       if (data.success && data.content) {
-        onImportData({ url: trimmed, text: data.content });
+        onImportData({ url: trimmed, text: data.content, structured: data.structured ?? null });
         setImportUrl('');
       } else {
         throw new Error(data.error || 'Could not extract recipe content');

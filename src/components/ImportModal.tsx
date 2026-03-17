@@ -5,9 +5,18 @@ import { extractRecipe } from '../lib/recipeExtractor';
 import { guessCategory } from '../lib/categoryGuesser';
 import type { Category } from '../types/recipe';
 
+interface StructuredRecipe {
+  name: string;
+  description: string;
+  totalTimeMinutes: number;
+  ingredients: string[];
+  steps: string[];
+}
+
 interface ImportModalProps {
   importUrl: string;
   importText: string;
+  structured: StructuredRecipe | null;
   onComplete: () => void;
   onDismiss: () => void;
 }
@@ -19,13 +28,24 @@ const CATEGORIES: { value: Category; label: string; icon: string }[] = [
   { value: 'snacks', label: 'Snacks', icon: '🍪' },
 ];
 
-export function ImportModal({ importUrl, importText, onComplete, onDismiss }: ImportModalProps) {
-  const sourceUrl = importUrl || `https://manual-entry.local/${Date.now()}`;
-  const textToExtract = importText || `Recipe from ${importUrl}`;
-  const extracted = extractRecipe(sourceUrl, textToExtract, 'dinner');
+const STAPLES = ['Eggs','Oats','Sweet Potato','Spinach','Banana','Chicken','Cheese','Yogurt','Pasta','Avocado','Honey','Berries','Rice','Beans','Carrots'];
 
+function findStaplesFromList(ingredients: string[]): string[] {
+  const combined = ingredients.join(' ').toLowerCase();
+  return STAPLES.filter(s => combined.includes(s.toLowerCase()));
+}
+
+export function ImportModal({ importUrl, importText, structured, onComplete, onDismiss }: ImportModalProps) {
+  const sourceUrl = importUrl || `https://manual-entry.local/${Date.now()}`;
+
+  // Use structured data when available, otherwise extract from text
+  const extracted = structured
+    ? null
+    : extractRecipe(sourceUrl, importText || `Recipe from ${importUrl}`, 'dinner');
+
+  const initialTitle = structured?.name ?? extracted?.recipe_name ?? '';
   const guessed = guessCategory(importText || importUrl);
-  const [title, setTitle] = useState(extracted.recipe_name);
+  const [title, setTitle] = useState(initialTitle);
   const [category, setCategory] = useState<Category>(guessed);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
@@ -38,21 +58,31 @@ export function ImportModal({ importUrl, importText, onComplete, onDismiss }: Im
     setIsSaving(true);
     setError('');
     try {
-      const { error: insertError } = await supabase.from('recipes').insert([{
+      const ingredients = structured
+        ? structured.ingredients
+        : (extracted?.ingredients.map(i => `${i.quantity} ${i.item}`) ?? []);
 
-        title: title.trim() || extracted.recipe_name,
-        url: extracted.source_url,
-        prep_time: extracted.total_time_minutes,
-        ingredients: extracted.ingredients.map(i => `${i.quantity} ${i.item}`),
-        ingredients_with_quantities: extracted.ingredients,
-        difficulty_tier: extracted.difficulty_tier,
-        one_sentence_summary: extracted.one_sentence_summary,
-        staple_tags: extracted.staple_tags,
-        steps: extracted.steps,
+      const stapleTags = structured
+        ? findStaplesFromList(structured.ingredients)
+        : (extracted?.staple_tags ?? []);
+
+      const { error: insertError } = await supabase.from('recipes').insert([{
+        title: title.trim() || initialTitle,
+        url: sourceUrl,
+        prep_time: structured?.totalTimeMinutes ?? extracted?.total_time_minutes ?? 15,
+        ingredients,
+        ingredients_with_quantities: structured
+          ? structured.ingredients.map(s => ({ item: s, quantity: '' }))
+          : (extracted?.ingredients ?? []),
+        difficulty_tier: structured
+          ? (structured.totalTimeMinutes <= 15 ? 'Quick' : structured.totalTimeMinutes <= 30 ? 'Medium' : 'Project')
+          : (extracted?.difficulty_tier ?? 'Quick'),
+        one_sentence_summary: structured?.description || extracted?.one_sentence_summary || '',
+        staple_tags: stapleTags,
+        steps: structured?.steps ?? extracted?.steps ?? [],
         category,
         meal_type: null,
       }]);
-
 
       if (insertError) throw insertError;
       onComplete();

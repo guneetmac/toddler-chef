@@ -23,7 +23,7 @@ export function Dashboard() {
   const [mealTypeFilter, setMealTypeFilter] = useState<MealType | null>(null);
   const [customMealTypes, setCustomMealTypes] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [importData, setImportData] = useState<{ url: string; text: string } | null>(null);
+  const [importData, setImportData] = useState<{ url: string; text: string; structured: any } | null>(null);
 
   const fetchRecipes = async () => {
     setIsLoading(true);
@@ -330,6 +330,7 @@ export function Dashboard() {
         <ImportModal
           importUrl={importData.url}
           importText={importData.text}
+          structured={importData.structured}
           onComplete={() => { setImportData(null); fetchRecipes(); }}
           onDismiss={() => setImportData(null)}
         />

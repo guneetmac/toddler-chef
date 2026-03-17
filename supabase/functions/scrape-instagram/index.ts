@@ -13,7 +13,33 @@ interface ScrapeRequest {
 interface ScrapeResponse {
   success: boolean;
   content?: string;
+  structured?: StructuredRecipe | null;
   error?: string;
+}
+
+interface StructuredRecipe {
+  name: string;
+  description: string;
+  totalTimeMinutes: number;
+  ingredients: string[];
+  steps: string[];
+}
+
+function parseDuration(iso: string): number {
+  const hours = iso.match(/(\d+)H/);
+  const mins = iso.match(/(\d+)M/);
+  return (hours ? parseInt(hours[1]) * 60 : 0) + (mins ? parseInt(mins[1]) : 0);
+}
+
+function findRecipeSchema(jsonData: any): any {
+  const isRecipe = (item: any) => {
+    const t = item?.['@type'];
+    return t === 'Recipe' || (Array.isArray(t) && t.includes('Recipe'));
+  };
+  if (isRecipe(jsonData)) return jsonData;
+  if (Array.isArray(jsonData)) return jsonData.find(isRecipe) ?? null;
+  if (jsonData?.['@graph']) return jsonData['@graph'].find(isRecipe) ?? null;
+  return null;
 }
 
 async function scrapeInstagramContent(url: string): Promise<string> {
@@ -165,7 +191,7 @@ async function scrapeTikTokContent(url: string): Promise<string> {
   }
 }
 
-async function scrapeGenericRecipeSite(url: string): Promise<string> {
+async function scrapeGenericRecipeSite(url: string): Promise<{ content: string; structured: StructuredRecipe | null }> {
   try {
     const response = await fetch(url, {
       headers: {
@@ -180,18 +206,15 @@ async function scrapeGenericRecipeSite(url: string): Promise<string> {
     }
 
     const html = await response.text();
-    let recipeData: any = {};
+    let recipeData: any = null;
 
     const jsonLdMatches = html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g);
     for (const match of jsonLdMatches) {
       try {
         const jsonData = JSON.parse(match[1]);
-        const recipeSchema = Array.isArray(jsonData)
-          ? jsonData.find((item: any) => item["@type"] === "Recipe")
-          : jsonData["@type"] === "Recipe" ? jsonData : null;
-
-        if (recipeSchema) {
-          recipeData = recipeSchema;
+        const found = findRecipeSchema(jsonData);
+        if (found) {
+          recipeData = found;
           break;
         }
       } catch {
@@ -199,22 +222,50 @@ async function scrapeGenericRecipeSite(url: string): Promise<string> {
       }
     }
 
+    let structured: StructuredRecipe | null = null;
+
+    if (recipeData) {
+      const rawTime = recipeData.totalTime ?? recipeData.cookTime ?? recipeData.prepTime;
+      const totalTimeMinutes = rawTime ? parseDuration(String(rawTime)) || 15 : 15;
+
+      const ingredients: string[] = Array.isArray(recipeData.recipeIngredient)
+        ? recipeData.recipeIngredient.filter((i: any) => typeof i === 'string')
+        : [];
+
+      let steps: string[] = [];
+      if (Array.isArray(recipeData.recipeInstructions)) {
+        steps = recipeData.recipeInstructions.map((instruction: any) =>
+          typeof instruction === 'string' ? instruction : (instruction.text ?? '')
+        ).filter((s: string) => s.length > 0);
+      } else if (typeof recipeData.recipeInstructions === 'string') {
+        steps = [recipeData.recipeInstructions];
+      }
+
+      structured = {
+        name: recipeData.name ?? '',
+        description: recipeData.description ?? '',
+        totalTimeMinutes,
+        ingredients,
+        steps,
+      };
+    }
+
     let recipeText = "";
 
-    if (recipeData.name) {
+    if (recipeData?.name) {
       recipeText += `${recipeData.name}\n\n`;
     }
 
-    if (recipeData.description) {
+    if (recipeData?.description) {
       recipeText += `${recipeData.description}\n\n`;
     }
 
-    if (recipeData.totalTime || recipeData.prepTime || recipeData.cookTime) {
+    if (recipeData?.totalTime || recipeData?.prepTime || recipeData?.cookTime) {
       const time = recipeData.totalTime || recipeData.prepTime || recipeData.cookTime;
       recipeText += `Time: ${time}\n\n`;
     }
 
-    if (recipeData.recipeIngredient && Array.isArray(recipeData.recipeIngredient)) {
+    if (recipeData?.recipeIngredient && Array.isArray(recipeData.recipeIngredient)) {
       recipeText += `Ingredients:\n`;
       recipeData.recipeIngredient.forEach((ingredient: string) => {
         recipeText += `• ${ingredient}\n`;
@@ -222,7 +273,7 @@ async function scrapeGenericRecipeSite(url: string): Promise<string> {
       recipeText += `\n`;
     }
 
-    if (recipeData.recipeInstructions) {
+    if (recipeData?.recipeInstructions) {
       recipeText += `Instructions:\n`;
       if (Array.isArray(recipeData.recipeInstructions)) {
         recipeData.recipeInstructions.forEach((instruction: any, idx: number) => {
@@ -249,13 +300,16 @@ async function scrapeGenericRecipeSite(url: string): Promise<string> {
     }
 
     if (!recipeText || recipeText.length < 50) {
-      return `Recipe from ${new URL(url).hostname}\n\nIngredients:\n• Check the original page for details\n\nTime: 20 minutes`;
+      recipeText = `Recipe from ${new URL(url).hostname}\n\nIngredients:\n• Check the original page for details\n\nTime: 20 minutes`;
     }
 
-    return recipeText;
+    return { content: recipeText, structured };
   } catch (error) {
     console.error("Scraping error:", error);
-    return `Recipe from website\n\nIngredients:\n• Check the original page for details\n\nTime: 20 minutes`;
+    return {
+      content: `Recipe from website\n\nIngredients:\n• Check the original page for details\n\nTime: 20 minutes`,
+      structured: null,
+    };
   }
 }
 
@@ -280,20 +334,18 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    let content: string;
+    let response: ScrapeResponse;
 
     if (url.includes("instagram.com")) {
-      content = await scrapeInstagramContent(url);
+      const content = await scrapeInstagramContent(url);
+      response = { success: true, content, structured: null };
     } else if (url.includes("tiktok.com")) {
-      content = await scrapeTikTokContent(url);
+      const content = await scrapeTikTokContent(url);
+      response = { success: true, content, structured: null };
     } else {
-      content = await scrapeGenericRecipeSite(url);
+      const { content, structured } = await scrapeGenericRecipeSite(url);
+      response = { success: true, content, structured };
     }
-
-    const response: ScrapeResponse = {
-      success: true,
-      content,
-    };
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
