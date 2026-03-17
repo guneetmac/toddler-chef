@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChefHat, Search, X, LogOut } from 'lucide-react';
+import { ChefHat, Search, X, LogOut, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { LinkParser } from './LinkParser';
@@ -24,6 +24,8 @@ export function Dashboard() {
   const [customMealTypes, setCustomMealTypes] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [importData, setImportData] = useState<{ url: string; text: string; structured: any } | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshLog, setRefreshLog] = useState<string[]>([]);
 
   const fetchRecipes = async () => {
     setIsLoading(true);
@@ -45,6 +47,51 @@ export function Dashboard() {
   useEffect(() => {
     fetchRecipes();
   }, []);
+
+  const refreshAllRecipes = async () => {
+    setIsRefreshing(true);
+    setRefreshLog([]);
+    const DEFAULT_INGREDIENTS = ['3 Eggs', '1 cup Spinach', '1/2 cup Cheese', '1 Tomato', '1 tbsp Olive Oil'];
+    const STAPLES = ['Eggs','Oats','Sweet Potato','Spinach','Banana','Chicken','Cheese','Yogurt','Pasta','Avocado','Honey','Berries','Rice','Beans','Carrots'];
+    const toUpdate = recipes.filter(r =>
+      r.url &&
+      !r.url.includes('manual-entry.local') &&
+      r.ingredients?.some(i => DEFAULT_INGREDIENTS.includes(i))
+    );
+    setRefreshLog([`Found ${toUpdate.length} recipes to update...`]);
+    for (const recipe of toUpdate) {
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/scrape-instagram`,
+          { method: 'POST', headers: { 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ url: recipe.url }) }
+        );
+        const data = await res.json();
+        if (!data.success || !data.structured) {
+          setRefreshLog(l => [...l, `⚠ No data for: ${recipe.title}`]);
+          continue;
+        }
+        const s = data.structured;
+        const stapleTags = STAPLES.filter(st => s.ingredients.join(' ').toLowerCase().includes(st.toLowerCase()));
+        const difficulty_tier = s.totalTimeMinutes <= 15 ? 'Quick' : s.totalTimeMinutes <= 30 ? 'Medium' : 'Project';
+        const { error } = await supabase.from('recipes').update({
+          ingredients: s.ingredients,
+          ingredients_with_quantities: s.ingredients.map((i: string) => ({ item: i, quantity: '' })),
+          one_sentence_summary: s.description || null,
+          staple_tags: stapleTags,
+          steps: s.steps,
+          prep_time: s.totalTimeMinutes,
+          difficulty_tier,
+        }).eq('id', recipe.id);
+        if (error) throw error;
+        setRefreshLog(l => [...l, `✓ ${recipe.title} — ${s.ingredients.length} ingredients`]);
+      } catch (e) {
+        setRefreshLog(l => [...l, `✗ Failed: ${recipe.title}`]);
+      }
+    }
+    setRefreshLog(l => [...l, 'Done!']);
+    setIsRefreshing(false);
+    fetchRecipes();
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -215,6 +262,15 @@ export function Dashboard() {
           <div className="flex items-center justify-end px-4 mt-2 gap-3">
             <span className="text-sm text-sage-600">{user?.email}</span>
             <button
+              onClick={refreshAllRecipes}
+              disabled={isRefreshing}
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-sage-600 transition-colors disabled:opacity-50"
+              title="Fix recipes with missing ingredients"
+            >
+              <RefreshCw size={15} className={isRefreshing ? 'animate-spin' : ''} />
+              {isRefreshing ? 'Refreshing...' : 'Fix recipes'}
+            </button>
+            <button
               onClick={() => supabase.auth.signOut()}
               className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-500 transition-colors"
             >
@@ -222,6 +278,11 @@ export function Dashboard() {
               Sign out
             </button>
           </div>
+          {refreshLog.length > 0 && (
+            <div className="mx-4 mt-3 p-3 bg-gray-50 rounded-xl border border-gray-200 text-xs text-gray-600 max-h-32 overflow-y-auto font-mono">
+              {refreshLog.map((line, i) => <div key={i}>{line}</div>)}
+            </div>
+          )}
         </header>
 
         <PanicButtons
