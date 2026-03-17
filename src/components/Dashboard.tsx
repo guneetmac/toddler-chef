@@ -220,7 +220,7 @@ export function Dashboard() {
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-warmOrange-500 text-white rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition-all"
             >
               <Instagram size={16} />
-              Import from Instagram / TikTok
+              Import Recipe
             </button>
             <div className="flex items-center gap-3">
               <span className="text-sm text-sage-600">{user?.email}</span>
@@ -338,7 +338,12 @@ export function Dashboard() {
           )}
         </div>
       </div>
-      {showImportGuide && <ImportGuide onClose={() => setShowImportGuide(false)} />}
+      {showImportGuide && (
+        <ImportGuide
+          onClose={() => setShowImportGuide(false)}
+          onImportData={(data) => { setImportData(data); setShowImportGuide(false); }}
+        />
+      )}
       {importData && (
         <ImportModal
           importUrl={importData.url}
