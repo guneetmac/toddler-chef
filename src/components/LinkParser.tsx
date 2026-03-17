@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link2, Bookmark, Smartphone, Loader2 } from 'lucide-react';
+import { Link2, Bookmark, Smartphone, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface LinkParserProps {
   onImportData: (data: { url: string; text: string }) => void;
@@ -11,6 +11,7 @@ type MainTab = 'url' | 'auto';
 type AutoTab = 'desktop' | 'mobile';
 
 export function LinkParser({ onImportData }: LinkParserProps) {
+  const [expanded, setExpanded] = useState(false);
   const [mainTab, setMainTab] = useState<MainTab>('url');
   const [autoTab, setAutoTab] = useState<AutoTab>('desktop');
   const [importUrl, setImportUrl] = useState('');
@@ -65,11 +66,17 @@ export function LinkParser({ onImportData }: LinkParserProps) {
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border-2 border-sage-200 mb-8 overflow-hidden">
-      <div className="px-6 pt-5 pb-0">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between px-6 py-5 text-left"
+      >
         <h2 className="text-xl font-black text-sage-800">Add / Import Recipes</h2>
-      </div>
+        {expanded ? <ChevronUp size={20} className="text-sage-600" /> : <ChevronDown size={20} className="text-sage-600" />}
+      </button>
+
+      {expanded && <>
       {/* Main tabs */}
-      <div className="flex border-b border-gray-100 mt-4">
+      <div className="flex border-b border-gray-100">
         <button
           onClick={() => setMainTab('url')}
           className={`flex-1 py-4 font-bold text-sm transition-all ${mainTab === 'url' ? 'text-sage-800 border-b-2 border-sage-600 bg-sage-50' : 'text-gray-500 hover:text-gray-700'}`}
@@ -203,6 +210,7 @@ export function LinkParser({ onImportData }: LinkParserProps) {
           </>
         )}
       </div>
+      </>}
     </div>
   );
 }
