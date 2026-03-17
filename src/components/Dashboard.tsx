@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChefHat, Search, X, LogOut } from 'lucide-react';
+import { ChefHat, Search, X, LogOut, Instagram } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { LinkParser } from './LinkParser';
@@ -7,11 +7,13 @@ import { PanicButtons } from './PanicButtons';
 import { PantryPulse } from './PantryPulse';
 import { RecipeCard } from './RecipeCard';
 import { Filters } from './Filters';
+import { ImportGuide } from './ImportGuide';
 import type { Recipe, Category, MealType } from '../types/recipe';
 
 export function Dashboard() {
   const { user } = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [showImportGuide, setShowImportGuide] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
   const [panicFilter, setPanicFilter] = useState<string | null>(null);
@@ -200,15 +202,24 @@ export function Dashboard() {
           <p className="text-xl text-sage-600 font-bold">
             Quick Recipes for Busy Parents
           </p>
-          <div className="flex items-center justify-end px-4 mt-2">
-            <span className="text-sm text-sage-600 mr-3">{user?.email}</span>
+          <div className="flex items-center justify-between px-4 mt-2">
             <button
-              onClick={() => supabase.auth.signOut()}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-500 transition-colors"
+              onClick={() => setShowImportGuide(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-warmOrange-500 text-white rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition-all"
             >
-              <LogOut size={16} />
-              Sign out
+              <Instagram size={16} />
+              Import from Instagram / TikTok
             </button>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-sage-600">{user?.email}</span>
+              <button
+                onClick={() => supabase.auth.signOut()}
+                className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-500 transition-colors"
+              >
+                <LogOut size={16} />
+                Sign out
+              </button>
+            </div>
           </div>
         </header>
 
@@ -316,5 +327,7 @@ export function Dashboard() {
         </div>
       </div>
     </div>
+
+    {showImportGuide && <ImportGuide onClose={() => setShowImportGuide(false)} />}
   );
 }
