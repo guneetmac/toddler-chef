@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Clock, ExternalLink, Pencil } from 'lucide-react';
+import { Clock, ExternalLink, Pencil, Trash2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import type { Recipe } from '../types/recipe';
 import { EditRecipeModal } from './EditRecipeModal';
 
@@ -10,6 +11,14 @@ interface RecipeCardProps {
 
 export function RecipeCard({ recipe, onUpdated }: RecipeCardProps) {
   const [showEdit, setShowEdit] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!confirm(`Delete "${recipe.title}"?`)) return;
+    setIsDeleting(true);
+    await supabase.from('recipes').delete().eq('id', recipe.id);
+    onUpdated();
+  };
   const categoryEmojis = {
     breakfast: '🌅',
     lunch: '☀️',
@@ -35,6 +44,14 @@ export function RecipeCard({ recipe, onUpdated }: RecipeCardProps) {
             title="Edit recipe"
           >
             <Pencil size={15} />
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="p-2 bg-white/90 hover:bg-white rounded-full shadow-md text-gray-500 hover:text-red-500 transition-all disabled:opacity-50"
+            title="Delete recipe"
+          >
+            <Trash2 size={15} />
           </button>
           <div className={`${timeBadgeColor} text-white px-4 py-3 rounded-full shadow-lg`}>
             <div className="flex items-center gap-2">
