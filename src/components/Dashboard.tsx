@@ -248,9 +248,7 @@ export function Dashboard() {
           />
 
           <LinkParser
-            onRecipeAdded={fetchRecipes}
             onImportData={(data) => setImportData(data)}
-            customMealTypes={customMealTypes}
           />
 
           <div className="relative mb-6 max-w-md mx-auto">
