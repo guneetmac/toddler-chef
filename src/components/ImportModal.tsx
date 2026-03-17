@@ -20,7 +20,12 @@ const CATEGORIES: { value: Category; label: string; icon: string }[] = [
 ];
 
 export function ImportModal({ importUrl, importText, onComplete, onDismiss }: ImportModalProps) {
+  const sourceUrl = importUrl || `https://manual-entry.local/${Date.now()}`;
+  const textToExtract = importText || `Recipe from ${importUrl}`;
+  const extracted = extractRecipe(sourceUrl, textToExtract, 'dinner');
+
   const guessed = guessCategory(importText || importUrl);
+  const [title, setTitle] = useState(extracted.recipe_name);
   const [category, setCategory] = useState<Category>(guessed);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
@@ -33,12 +38,9 @@ export function ImportModal({ importUrl, importText, onComplete, onDismiss }: Im
     setIsSaving(true);
     setError('');
     try {
-      const sourceUrl = importUrl || `https://manual-entry.local/${Date.now()}`;
-      const textToExtract = importText || `Recipe from ${importUrl}`;
-      const extracted = extractRecipe(sourceUrl, textToExtract, category);
-
       const { error: insertError } = await supabase.from('recipes').insert([{
-        title: extracted.recipe_name,
+
+        title: title.trim() || extracted.recipe_name,
         url: extracted.source_url,
         prep_time: extracted.total_time_minutes,
         ingredients: extracted.ingredients.map(i => `${i.quantity} ${i.item}`),
@@ -50,6 +52,7 @@ export function ImportModal({ importUrl, importText, onComplete, onDismiss }: Im
         category,
         meal_type: null,
       }]);
+
 
       if (insertError) throw insertError;
       onComplete();
@@ -75,6 +78,19 @@ export function ImportModal({ importUrl, importText, onComplete, onDismiss }: Im
 
         <div className="bg-gray-50 rounded-xl p-3 mb-4 text-sm text-gray-600 max-h-32 overflow-y-auto">
           {preview}
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Recipe Title
+            <span className="ml-2 text-xs text-sage-600 font-normal">(auto-extracted — change if needed)</span>
+          </label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full px-4 py-2 rounded-xl border-2 border-sage-200 focus:border-sage-500 focus:outline-none text-gray-800 text-sm"
+          />
         </div>
 
         <div className="mb-4">
