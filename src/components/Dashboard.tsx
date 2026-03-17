@@ -230,23 +230,6 @@ export function Dashboard() {
         />
 
         <div className="px-4">
-          <Filters
-            selectedIngredients={selectedStaples}
-            vegetarianFilter={vegetarianFilter}
-            proteinTypeFilter={proteinTypeFilter}
-            allergyFilters={allergyFilters}
-            mealTypeFilter={mealTypeFilter}
-            customMealTypes={customMealTypes}
-            onIngredientsChange={(ingredients) => {
-              setSelectedStaples(ingredients);
-            }}
-            onVegetarianFilterChange={setVegetarianFilter}
-            onProteinTypeFilterChange={setProteinTypeFilter}
-            onAllergyFiltersChange={setAllergyFilters}
-            onMealTypeFilterChange={setMealTypeFilter}
-            onCustomMealTypesChange={setCustomMealTypes}
-          />
-
           <LinkParser
             onImportData={(data) => setImportData(data)}
           />
@@ -269,6 +252,23 @@ export function Dashboard() {
               </button>
             )}
           </div>
+
+          <Filters
+            selectedIngredients={selectedStaples}
+            vegetarianFilter={vegetarianFilter}
+            proteinTypeFilter={proteinTypeFilter}
+            allergyFilters={allergyFilters}
+            mealTypeFilter={mealTypeFilter}
+            customMealTypes={customMealTypes}
+            onIngredientsChange={(ingredients) => {
+              setSelectedStaples(ingredients);
+            }}
+            onVegetarianFilterChange={setVegetarianFilter}
+            onProteinTypeFilterChange={setProteinTypeFilter}
+            onAllergyFiltersChange={setAllergyFilters}
+            onMealTypeFilterChange={setMealTypeFilter}
+            onCustomMealTypesChange={setCustomMealTypes}
+          />
 
           <div className="mb-8 flex flex-wrap gap-3 justify-center">
             {categories.map((category) => (
