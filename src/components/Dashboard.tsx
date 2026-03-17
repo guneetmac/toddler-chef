@@ -326,8 +326,7 @@ export function Dashboard() {
           )}
         </div>
       </div>
+      {showImportGuide && <ImportGuide onClose={() => setShowImportGuide(false)} />}
     </div>
-
-    {showImportGuide && <ImportGuide onClose={() => setShowImportGuide(false)} />}
   );
 }
