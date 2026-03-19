@@ -317,7 +317,7 @@ export function Dashboard() {
                   )}
                 </p>
               </div>
-              <div className="flex flex-col gap-2.5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                 {filteredRecipes.map((recipe) => (
                   <RecipeCard key={recipe.id} recipe={recipe} onUpdated={fetchRecipes} />
                 ))}
