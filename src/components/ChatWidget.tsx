@@ -52,6 +52,7 @@ function parseRecipeFromResponse(text: string): ParsedRecipe | null {
 
 export function ChatWidget({ recipes, selectedStaples, onImportRecipe }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showGreeting, setShowGreeting] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -107,13 +108,31 @@ export function ChatWidget({ recipes, selectedStaples, onImportRecipe }: ChatWid
   return (
     <>
       {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-sage-600 hover:bg-sage-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all z-40"
-          aria-label="Open AI Chat"
-        >
-          <MessageCircle size={24} />
-        </button>
+        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
+          {showGreeting && (
+            <div className="relative bg-white border-2 border-sage-200 rounded-2xl rounded-br-sm shadow-lg px-4 py-3 max-w-[220px]">
+              <button
+                onClick={() => setShowGreeting(false)}
+                className="absolute -top-2 -right-2 w-5 h-5 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center text-gray-500"
+              >
+                <X size={10} />
+              </button>
+              <p className="text-sm font-semibold text-sage-800 leading-snug">
+                🍳 Picky eater tonight?
+              </p>
+              <p className="text-xs text-gray-500 mt-1 leading-snug">
+                Tell me what's in your fridge — I'll whip up a toddler-approved recipe!
+              </p>
+            </div>
+          )}
+          <button
+            onClick={() => { setIsOpen(true); setShowGreeting(false); }}
+            className="w-14 h-14 bg-sage-600 hover:bg-sage-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all"
+            aria-label="Open AI Chat"
+          >
+            <MessageCircle size={24} />
+          </button>
+        </div>
       )}
 
       {isOpen && (
