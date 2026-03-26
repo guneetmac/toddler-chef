@@ -25,20 +25,20 @@ interface ParsedRecipe {
 function parseRecipeFromResponse(text: string): ParsedRecipe | null {
   if (!text.includes('RECIPE:')) return null;
 
-  const titleMatch = text.match(/RECIPE:\s*(.+)/);
+  const titleMatch = text.match(/RECIPE:\s*(.+)/i);
   if (!titleMatch) return null;
 
-  const timeMatch = text.match(/TIME:\s*(\d+)/);
-  const summaryMatch = text.match(/SUMMARY:\s*(.+)/);
-  const ingredientsMatch = text.match(/INGREDIENTS:\n([\s\S]*?)(?=\nINSTRUCTIONS:|$)/);
-  const instructionsMatch = text.match(/INSTRUCTIONS:\n([\s\S]*?)(?=\nSUMMARY:|$)/);
+  const timeMatch = text.match(/TIME:\s*(\d+)/i);
+  const summaryMatch = text.match(/SUMMARY:\s*(.+)/i);
+  const ingredientsMatch = text.match(/INGREDIENTS:\s*[\r\n]+([\s\S]*?)(?=[\r\n]+\s*INSTRUCTIONS:|[\r\n]+\s*SUMMARY:|$)/i);
+  const instructionsMatch = text.match(/INSTRUCTIONS:\s*[\r\n]+([\s\S]*?)(?=[\r\n]+\s*SUMMARY:|$)/i);
 
   const ingredients = ingredientsMatch
-    ? ingredientsMatch[1].split('\n').map(l => l.replace(/^-\s*/, '').trim()).filter(Boolean)
+    ? ingredientsMatch[1].split(/[\r\n]+/).map(l => l.replace(/^[-•*]\s*/, '').trim()).filter(Boolean)
     : [];
 
   const steps = instructionsMatch
-    ? instructionsMatch[1].split('\n').map(l => l.replace(/^\d+\.\s*/, '').trim()).filter(Boolean)
+    ? instructionsMatch[1].split(/[\r\n]+/).map(l => l.replace(/^\d+[.)]\s*/, '').trim()).filter(Boolean)
     : [];
 
   return {
