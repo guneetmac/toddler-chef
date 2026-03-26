@@ -8,6 +8,7 @@ import { PantryPulse } from './PantryPulse';
 import { RecipeCard } from './RecipeCard';
 import { Filters } from './Filters';
 import { ImportModal } from './ImportModal';
+import { ChatWidget } from './ChatWidget';
 import type { Recipe, Category, MealType } from '../types/recipe';
 
 export function Dashboard() {
@@ -335,6 +336,11 @@ export function Dashboard() {
           onDismiss={() => setImportData(null)}
         />
       )}
+      <ChatWidget
+        recipes={recipes}
+        selectedStaples={selectedStaples}
+        onImportRecipe={(data) => setImportData(data)}
+      />
     </div>
   );
 }
