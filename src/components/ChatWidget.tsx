@@ -110,9 +110,9 @@ export function ChatWidget({ recipes, selectedStaples, onImportRecipe }: ChatWid
       {!isOpen && (
         <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3">
           {showGreeting && (
-            <div className="flex items-center gap-2 bg-white border-2 border-sage-200 rounded-full shadow-lg pl-4 pr-2 py-2">
-              <p className="text-sm font-semibold text-sage-800 whitespace-nowrap">
-                🍳 Picky eater? I'll find you a recipe!
+            <div className="flex items-center gap-2 bg-white border-2 border-sage-200 rounded-full shadow-lg pl-4 pr-2 py-2 max-w-xs">
+              <p className="text-sm font-semibold text-sage-800">
+                🍳 Picky eater tonight? Tell me what's in your fridge — I'll whip up a toddler-approved recipe!
               </p>
               <button
                 onClick={() => setShowGreeting(false)}
@@ -123,7 +123,7 @@ export function ChatWidget({ recipes, selectedStaples, onImportRecipe }: ChatWid
             </div>
           )}
           <button
-            onClick={() => { setIsOpen(true); setShowGreeting(false); }}
+            onClick={() => { setIsOpen(true); setShowGreeting(false); setInput("Picky eater tonight! Here's what's in my fridge: "); }}
             className="w-14 h-14 bg-sage-600 hover:bg-sage-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all flex-shrink-0"
             aria-label="Open AI Chat"
           >
