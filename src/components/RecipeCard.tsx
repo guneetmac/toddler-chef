@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Clock, ExternalLink, Pencil, Trash2, ChevronDown } from 'lucide-react';
+import { Clock, ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Recipe } from '../types/recipe';
 import { EditRecipeModal } from './EditRecipeModal';
+import { RecipeDetailModal } from './RecipeDetailModal';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -17,7 +18,7 @@ const CAT: Record<string, { bg: string; light: string; emoji: string; label: str
 };
 
 export function RecipeCard({ recipe, onUpdated }: RecipeCardProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [showDetail, setShowDetail] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -25,6 +26,7 @@ export function RecipeCard({ recipe, onUpdated }: RecipeCardProps) {
     if (!confirm(`Delete "${recipe.title}"?`)) return;
     setIsDeleting(true);
     await supabase.from('recipes').delete().eq('id', recipe.id);
+    setShowDetail(false);
     onUpdated();
   };
 
@@ -40,7 +42,7 @@ export function RecipeCard({ recipe, onUpdated }: RecipeCardProps) {
         {/* Left color tab */}
         <div
           className={`${cat.bg} w-14 flex flex-col items-center justify-center gap-1 shrink-0 cursor-pointer py-4`}
-          onClick={() => setExpanded(v => !v)}
+          onClick={() => setShowDetail(true)}
         >
           <span className="text-2xl leading-none">{cat.emoji}</span>
           <span className="text-white/80 text-[9px] font-bold uppercase tracking-wider rotate-0">
@@ -49,7 +51,7 @@ export function RecipeCard({ recipe, onUpdated }: RecipeCardProps) {
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0 px-4 py-3 cursor-pointer" onClick={() => setExpanded(v => !v)}>
+        <div className="flex-1 min-w-0 px-4 py-3 cursor-pointer" onClick={() => setShowDetail(true)}>
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-bold text-gray-900 text-[15px] leading-snug flex-1 min-w-0">
               {recipe.title}
@@ -78,81 +80,19 @@ export function RecipeCard({ recipe, onUpdated }: RecipeCardProps) {
                 </span>
               ))}
             </div>
-            <ChevronDown
-              size={15}
-              className={`text-gray-300 shrink-0 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-            />
+            <ChevronDown size={15} className="text-gray-300 shrink-0" />
           </div>
         </div>
       </div>
 
-      {/* ── Expanded panel ── */}
-      {expanded && (
-        <div className="border-t border-gray-200/60 bg-white px-4 py-4 space-y-4">
-
-          {/* Action buttons */}
-          <div className="flex items-center justify-end gap-2">
-            <button
-              onClick={() => setShowEdit(true)}
-              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-sage-600 font-medium px-2.5 py-1.5 rounded-lg hover:bg-sage-50 transition-all"
-            >
-              <Pencil size={12} /> Edit
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 font-medium px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition-all disabled:opacity-40"
-            >
-              <Trash2 size={12} /> Delete
-            </button>
-          </div>
-
-          {/* Ingredients */}
-          {recipe.ingredients.length > 0 && (
-            <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Ingredients</p>
-              <div className="flex flex-wrap gap-1.5">
-                {recipe.ingredients.map((ing, i) => (
-                  <span key={i} className="text-xs text-gray-700 bg-stone-100 border border-stone-200 px-2.5 py-1 rounded-full">
-                    {ing}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Steps */}
-          {recipe.steps && recipe.steps.length > 0 && (
-            <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">How to make</p>
-              <ol className="space-y-2.5">
-                {recipe.steps.map((step, i) => (
-                  <li key={i} className="flex gap-3 text-sm text-gray-600">
-                    <span className={`shrink-0 w-5 h-5 ${cat.bg} text-white rounded-full flex items-center justify-center text-[10px] font-bold mt-0.5`}>
-                      {i + 1}
-                    </span>
-                    {step}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
-
-          {/* Source link */}
-          {recipe.url &&
-           !recipe.url.includes('manual-entry.local') &&
-           !recipe.url.includes('toddlerchef.app') && (
-            <a
-              href={recipe.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-warmOrange-500 hover:text-warmOrange-600"
-            >
-              <ExternalLink size={12} />
-              View original recipe
-            </a>
-          )}
-        </div>
+      {showDetail && (
+        <RecipeDetailModal
+          recipe={recipe}
+          onDismiss={() => setShowDetail(false)}
+          onEdit={() => { setShowDetail(false); setShowEdit(true); }}
+          onDelete={handleDelete}
+          isDeleting={isDeleting}
+        />
       )}
 
       {showEdit && (
