@@ -123,7 +123,7 @@ export function ChatWidget({ recipes, selectedStaples, onImportRecipe }: ChatWid
             </div>
           )}
           <button
-            onClick={() => { setIsOpen(true); setShowGreeting(false); setInput("Picky eater tonight! Here's what's in my fridge: "); }}
+            onClick={() => { setIsOpen(true); setShowGreeting(false); }}
             className="w-14 h-14 bg-sage-600 hover:bg-sage-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all flex-shrink-0"
             aria-label="Open AI Chat"
           >
@@ -146,10 +146,14 @@ export function ChatWidget({ recipes, selectedStaples, onImportRecipe }: ChatWid
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 && (
-              <div className="text-center text-gray-400 text-sm mt-8">
-                <ChefHat size={32} className="mx-auto mb-2 text-sage-300" />
-                <p>Ask me about toddler recipes,</p>
-                <p>nutrition, or meal ideas!</p>
+              <div className="text-center text-sm mt-8 px-2">
+                <ChefHat size={32} className="mx-auto mb-3 text-sage-400" />
+                <p className="font-semibold text-sage-800 leading-snug">
+                  🍳 Picky eater tonight? Tell me what's in your fridge — I'll whip up a toddler-approved recipe!
+                </p>
+                <p className="text-gray-400 mt-2 text-xs">
+                  Ask me anything about nutrition, meal ideas, or allergies.
+                </p>
               </div>
             )}
 
