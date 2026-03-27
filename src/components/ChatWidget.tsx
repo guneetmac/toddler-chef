@@ -25,32 +25,47 @@ interface ParsedRecipe {
 function parseRecipeFromResponse(text: string): ParsedRecipe | null {
   if (!text.includes('RECIPE:')) return null;
 
-  // Strip markdown bold markers (**) around headers before matching
-  const cleaned = text.replace(/\*\*/g, '');
+  // Strip markdown formatting
+  const cleaned = text.replace(/\*\*/g, '').replace(/\*/g, '');
+  const lines = cleaned.split(/[\r\n]+/);
 
-  const titleMatch = cleaned.match(/RECIPE:\s*(.+)/i);
-  if (!titleMatch) return null;
+  let title = '';
+  let time = 15;
+  let summary = '';
+  const ingredients: string[] = [];
+  const steps: string[] = [];
+  let section: 'none' | 'ingredients' | 'instructions' = 'none';
 
-  const timeMatch = cleaned.match(/TIME:\s*(\d+)/i);
-  const summaryMatch = cleaned.match(/SUMMARY:\s*(.+)/i);
-  const ingredientsMatch = cleaned.match(/INGREDIENTS:\s*[\r\n]+([\s\S]*?)(?=[\r\n]+\s*INSTRUCTIONS:|[\r\n]+\s*SUMMARY:|$)/i);
-  const instructionsMatch = cleaned.match(/INSTRUCTIONS:\s*[\r\n]+([\s\S]*?)(?=[\r\n]+\s*SUMMARY:|$)/i);
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line || line === '---') continue;
 
-  const ingredients = ingredientsMatch
-    ? ingredientsMatch[1].split(/[\r\n]+/).map(l => l.replace(/^[-•*]\s*/, '').trim()).filter(Boolean)
-    : [];
+    if (/^RECIPE:\s*/i.test(line)) {
+      title = line.replace(/^RECIPE:\s*/i, '').trim();
+      section = 'none';
+    } else if (/^TIME:\s*/i.test(line)) {
+      const m = line.match(/(\d+)/);
+      if (m) time = parseInt(m[1]);
+      section = 'none';
+    } else if (/^INGREDIENTS:\s*$/i.test(line)) {
+      section = 'ingredients';
+    } else if (/^INSTRUCTIONS:\s*$/i.test(line)) {
+      section = 'instructions';
+    } else if (/^SUMMARY:\s*/i.test(line)) {
+      summary = line.replace(/^SUMMARY:\s*/i, '').trim();
+      section = 'none';
+    } else if (section === 'ingredients') {
+      const ing = line.replace(/^[-•*]\s*/, '').trim();
+      if (ing) ingredients.push(ing);
+    } else if (section === 'instructions') {
+      const step = line.replace(/^\d+[.)]\s*/, '').trim();
+      if (step) steps.push(step);
+    }
+  }
 
-  const steps = instructionsMatch
-    ? instructionsMatch[1].split(/[\r\n]+/).map(l => l.replace(/^\d+[.)]\s*/, '').trim()).filter(Boolean)
-    : [];
+  if (!title) return null;
 
-  return {
-    name: titleMatch[1].trim(),
-    description: summaryMatch?.[1]?.trim() ?? '',
-    totalTimeMinutes: timeMatch ? parseInt(timeMatch[1]) : 15,
-    ingredients,
-    steps,
-  };
+  return { name: title, description: summary, totalTimeMinutes: time, ingredients, steps };
 }
 
 export function ChatWidget({ recipes, selectedStaples, onImportRecipe }: ChatWidgetProps) {
