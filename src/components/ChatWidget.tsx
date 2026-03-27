@@ -25,13 +25,16 @@ interface ParsedRecipe {
 function parseRecipeFromResponse(text: string): ParsedRecipe | null {
   if (!text.includes('RECIPE:')) return null;
 
-  const titleMatch = text.match(/RECIPE:\s*(.+)/i);
+  // Strip markdown bold markers (**) around headers before matching
+  const cleaned = text.replace(/\*\*/g, '');
+
+  const titleMatch = cleaned.match(/RECIPE:\s*(.+)/i);
   if (!titleMatch) return null;
 
-  const timeMatch = text.match(/TIME:\s*(\d+)/i);
-  const summaryMatch = text.match(/SUMMARY:\s*(.+)/i);
-  const ingredientsMatch = text.match(/INGREDIENTS:\s*[\r\n]+([\s\S]*?)(?=[\r\n]+\s*INSTRUCTIONS:|[\r\n]+\s*SUMMARY:|$)/i);
-  const instructionsMatch = text.match(/INSTRUCTIONS:\s*[\r\n]+([\s\S]*?)(?=[\r\n]+\s*SUMMARY:|$)/i);
+  const timeMatch = cleaned.match(/TIME:\s*(\d+)/i);
+  const summaryMatch = cleaned.match(/SUMMARY:\s*(.+)/i);
+  const ingredientsMatch = cleaned.match(/INGREDIENTS:\s*[\r\n]+([\s\S]*?)(?=[\r\n]+\s*INSTRUCTIONS:|[\r\n]+\s*SUMMARY:|$)/i);
+  const instructionsMatch = cleaned.match(/INSTRUCTIONS:\s*[\r\n]+([\s\S]*?)(?=[\r\n]+\s*SUMMARY:|$)/i);
 
   const ingredients = ingredientsMatch
     ? ingredientsMatch[1].split(/[\r\n]+/).map(l => l.replace(/^[-•*]\s*/, '').trim()).filter(Boolean)
