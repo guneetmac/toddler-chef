@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { ChefHat, Search, X, LogOut } from 'lucide-react';
+import { ChefHat, Search, X, LogOut, Upload, SlidersHorizontal, Zap, ChefHat as ChefHatIcon } from 'lucide-react';
+import { Leaf } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import { LinkParser } from './LinkParser';
-import { PanicButtons } from './PanicButtons';
-import { PantryPulse } from './PantryPulse';
 import { RecipeCard } from './RecipeCard';
 import { Filters } from './Filters';
 import { ImportModal } from './ImportModal';
@@ -25,6 +24,8 @@ export function Dashboard() {
   const [customMealTypes, setCustomMealTypes] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [importData, setImportData] = useState<{ url: string; text: string; structured: any } | null>(null);
+  const [showImport, setShowImport] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const fetchRecipes = async () => {
     setIsLoading(true);
@@ -200,6 +201,17 @@ export function Dashboard() {
     { value: 'snacks', label: 'Snacks', icon: '🍪' },
   ];
 
+  const activeFilterCount = [
+    panicFilter,
+    vegetarianFilter || null,
+    proteinTypeFilter,
+    ...allergyFilters,
+    mealTypeFilter,
+    ...selectedStaples,
+    searchQuery ? 'search' : null,
+    selectedCategory !== 'all' ? selectedCategory : null,
+  ].filter(Boolean).length;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-50 to-warmOrange-50 pb-12">
       <div className="max-w-7xl mx-auto">
@@ -225,68 +237,141 @@ export function Dashboard() {
           </div>
         </header>
 
-        <PanicButtons
-          activeFilter={panicFilter}
-          onFilterChange={setPanicFilter}
-        />
-
         <div className="px-4">
-          <LinkParser
-            onImportData={(data) => setImportData(data)}
-          />
-
-          <div className="relative mb-6 max-w-md mx-auto">
-            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search recipes... (e.g. pancakes, chicken, pasta)"
-              className="w-full pl-10 pr-10 py-3 rounded-2xl border-2 border-sage-200 focus:border-sage-500 focus:outline-none text-gray-800 placeholder-gray-400 bg-white shadow-sm"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                <X size={16} />
-              </button>
-            )}
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 mb-3">
+            <button
+              onClick={() => { setShowImport(v => !v); setShowFilters(false); }}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all shadow-sm ${
+                showImport ? 'bg-warmOrange-500 text-white' : 'bg-white text-gray-600 hover:bg-warmOrange-50 border border-gray-200'
+              }`}
+            >
+              <Upload size={15} />
+              Import
+            </button>
+            <button
+              onClick={() => { setShowFilters(v => !v); setShowImport(false); }}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all shadow-sm ${
+                showFilters ? 'bg-sage-600 text-white' : 'bg-white text-gray-600 hover:bg-sage-50 border border-gray-200'
+              }`}
+            >
+              <SlidersHorizontal size={15} />
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="w-5 h-5 bg-warmOrange-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
           </div>
 
-          <div className="mb-8 flex flex-wrap gap-3 justify-center">
-            {categories.map((category) => (
-              <button
-                key={category.value}
-                onClick={() => setSelectedCategory(category.value)}
-                className={`px-6 py-3 rounded-2xl font-bold text-lg transition-all shadow-md ${
-                  selectedCategory === category.value
-                    ? 'bg-sage-600 text-white shadow-lg scale-110'
-                    : 'bg-white text-gray-700 hover:bg-sage-100'
-                }`}
-              >
-                <span className="mr-2 text-2xl">{category.icon}</span>
-                {category.label}
-              </button>
-            ))}
-          </div>
+          {/* Import panel */}
+          {showImport && (
+            <div className="mb-4">
+              <LinkParser onImportData={(data) => { setImportData(data); setShowImport(false); }} />
+            </div>
+          )}
 
-          <Filters
-            selectedIngredients={selectedStaples}
-            vegetarianFilter={vegetarianFilter}
-            proteinTypeFilter={proteinTypeFilter}
-            allergyFilters={allergyFilters}
-            mealTypeFilter={mealTypeFilter}
-            customMealTypes={customMealTypes}
-            onIngredientsChange={(ingredients) => {
-              setSelectedStaples(ingredients);
-            }}
-            onVegetarianFilterChange={setVegetarianFilter}
-            onProteinTypeFilterChange={setProteinTypeFilter}
-            onAllergyFiltersChange={setAllergyFilters}
-            onMealTypeFilterChange={setMealTypeFilter}
-            onCustomMealTypesChange={setCustomMealTypes}
-          />
+          {/* Filter panel */}
+          {showFilters && (
+            <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4 mb-4 space-y-4">
+
+              {/* Search */}
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search recipes..."
+                  className="w-full pl-9 pr-9 py-2 rounded-xl border border-gray-200 focus:border-sage-400 focus:outline-none text-sm text-gray-800 placeholder-gray-400"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              {/* Categories */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Category</p>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.value}
+                      onClick={() => setSelectedCategory(cat.value)}
+                      className={`flex items-center gap-1 px-3 py-1.5 rounded-xl font-semibold text-sm transition-all ${
+                        selectedCategory === cat.value
+                          ? 'bg-sage-600 text-white shadow-sm'
+                          : 'bg-gray-100 text-gray-600 hover:bg-sage-50'
+                      }`}
+                    >
+                      <span>{cat.icon}</span>
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick filters */}
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Quick Filters</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: 'under-10', label: '⚡ Under 10 min', color: 'bg-green-500' },
+                    { id: 'under-20', label: '🔥 Under 20 min', color: 'bg-warmOrange-500' },
+                    { id: 'high-protein', label: '💪 High Protein', color: 'bg-sage-600' },
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      onClick={() => setPanicFilter(panicFilter === f.id ? null : f.id)}
+                      className={`px-3 py-1.5 rounded-xl font-semibold text-sm transition-all ${
+                        panicFilter === f.id ? `${f.color} text-white shadow-sm` : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* All existing filters */}
+              <Filters
+                selectedIngredients={selectedStaples}
+                vegetarianFilter={vegetarianFilter}
+                proteinTypeFilter={proteinTypeFilter}
+                allergyFilters={allergyFilters}
+                mealTypeFilter={mealTypeFilter}
+                customMealTypes={customMealTypes}
+                onIngredientsChange={setSelectedStaples}
+                onVegetarianFilterChange={setVegetarianFilter}
+                onProteinTypeFilterChange={setProteinTypeFilter}
+                onAllergyFiltersChange={setAllergyFilters}
+                onMealTypeFilterChange={setMealTypeFilter}
+                onCustomMealTypesChange={setCustomMealTypes}
+              />
+
+              {/* Clear all */}
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedCategory('all');
+                    setPanicFilter(null);
+                    setVegetarianFilter(false);
+                    setProteinTypeFilter(null);
+                    setAllergyFilters([]);
+                    setMealTypeFilter(null);
+                    setSelectedStaples([]);
+                  }}
+                  className="text-xs text-red-500 hover:text-red-700 font-semibold"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
+          )}
 
           {isLoading ? (
             <div className="text-center py-20">
@@ -300,23 +385,19 @@ export function Dashboard() {
               </p>
               <p className="text-lg text-gray-500">
                 {recipes.length === 0
-                  ? 'Add your first recipe using the form above'
-                  : 'Try adjusting your panic buttons or pantry selections'}
+                  ? 'Import your first recipe using the Import button above'
+                  : 'Try adjusting your filters'}
               </p>
             </div>
           ) : (
             <>
-              <div className="mb-6 text-center">
-                <p className="text-lg font-bold text-sage-700">
-                  {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? 's' : ''} found
-                  {panicFilter && (
-                    <span className="ml-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-                      {panicFilter === 'under-10' && '⚡ 10min or less'}
-                      {panicFilter === 'under-20' && '🔥 20min or less'}
-                      {panicFilter === 'high-protein' && '💪 High Protein'}
-                    </span>
-                  )}
+              <div className="mb-4 flex items-center gap-2">
+                <p className="text-sm font-bold text-sage-700">
+                  {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? 's' : ''}
                 </p>
+                {activeFilterCount > 0 && (
+                  <span className="text-xs text-gray-400">· {activeFilterCount} filter{activeFilterCount !== 1 ? 's' : ''} active</span>
+                )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                 {filteredRecipes.map((recipe) => (
