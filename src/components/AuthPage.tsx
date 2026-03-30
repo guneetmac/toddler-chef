@@ -11,6 +11,8 @@ export function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [confirming, setConfirming] = useState(false);
+  const [confirmedEmail, setConfirmedEmail] = useState('');
 
   const passwordChecks = {
     length: password.length >= 8,
@@ -56,8 +58,8 @@ export function AuthPage() {
           options: { data: { full_name: name } },
         });
         if (error) throw error;
-        setSuccessMessage('Account created! You can now sign in.');
-        switchMode('signin');
+        setConfirmedEmail(email);
+        setConfirming(true);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -68,6 +70,48 @@ export function AuthPage() {
       setIsLoading(false);
     }
   };
+
+  if (confirming) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sage-50 to-warmOrange-50 flex flex-col">
+        <header className="text-center pt-12 pb-8 px-4">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <ChefHat size={48} className="text-sage-600" />
+            <h1 className="text-4xl md:text-6xl font-black text-sage-800">Toddler Chef</h1>
+          </div>
+        </header>
+        <div className="flex-1 flex items-start justify-center px-4">
+          <div className="bg-white rounded-3xl shadow-xl border-2 border-sage-200 p-8 w-full max-w-md text-center">
+            <div className="w-16 h-16 bg-sage-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">📬</span>
+            </div>
+            <h2 className="text-2xl font-black text-sage-800 mb-2">Check your inbox!</h2>
+            <p className="text-gray-600 text-sm mb-4">
+              We've sent a confirmation email to:
+            </p>
+            <p className="font-bold text-sage-700 text-base bg-sage-50 rounded-xl px-4 py-2 mb-4 break-all">
+              {confirmedEmail}
+            </p>
+            <p className="text-gray-500 text-sm mb-2">
+              Click the link in that email to activate your account. The email will come from:
+            </p>
+            <p className="text-xs font-mono text-gray-400 bg-gray-50 rounded-lg px-3 py-2 mb-6">
+              noreply@mail.app.supabase.io
+            </p>
+            <p className="text-xs text-gray-400 mb-6">
+              Can't find it? Check your spam or junk folder.
+            </p>
+            <button
+              onClick={() => { setConfirming(false); switchMode('signin'); }}
+              className="w-full bg-warmOrange-500 hover:bg-warmOrange-600 text-white font-bold py-3 rounded-xl transition-colors"
+            >
+              Back to Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-50 to-warmOrange-50 flex flex-col">
