@@ -143,7 +143,7 @@ export function ChatWidget({ recipes, selectedStaples, onImportRecipe, isGuest, 
             </div>
           )}
           <button
-            onClick={() => { if (isGuest) { onAuthRequired(); return; } setIsOpen(true); setShowGreeting(false); }}
+            onClick={() => { setIsOpen(true); setShowGreeting(false); }}
             className="w-14 h-14 bg-sage-600 hover:bg-sage-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all flex-shrink-0"
             aria-label="Open AI Chat"
           >
@@ -191,11 +191,14 @@ export function ChatWidget({ recipes, selectedStaples, onImportRecipe, isGuest, 
                     </div>
                     {parsed && (
                       <button
-                        onClick={() => onImportRecipe({ url: '', text: msg.content, structured: parsed })}
+                        onClick={() => {
+                          if (isGuest) { onAuthRequired(); return; }
+                          onImportRecipe({ url: '', text: msg.content, structured: parsed });
+                        }}
                         className="flex items-center gap-1 text-xs text-sage-600 hover:text-sage-800 font-semibold bg-sage-50 hover:bg-sage-100 px-2 py-1 rounded-lg transition-colors"
                       >
                         <BookmarkPlus size={14} />
-                        Save to my recipes
+                        {isGuest ? 'Sign in to save' : 'Save to my recipes'}
                       </button>
                     )}
                   </div>
