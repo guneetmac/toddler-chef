@@ -8,6 +8,8 @@ import { RecipeDetailModal } from './RecipeDetailModal';
 interface RecipeCardProps {
   recipe: Recipe;
   onUpdated: () => void;
+  isGuest: boolean;
+  onAuthRequired: () => void;
 }
 
 const CAT: Record<string, { bg: string; light: string; emoji: string; label: string }> = {
@@ -17,7 +19,7 @@ const CAT: Record<string, { bg: string; light: string; emoji: string; label: str
   snacks:    { bg: 'bg-orange-400',     light: 'bg-orange-50',  emoji: '🍪', label: 'Snacks' },
 };
 
-export function RecipeCard({ recipe, onUpdated }: RecipeCardProps) {
+export function RecipeCard({ recipe, onUpdated, isGuest, onAuthRequired }: RecipeCardProps) {
   const [showDetail, setShowDetail] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -89,8 +91,8 @@ export function RecipeCard({ recipe, onUpdated }: RecipeCardProps) {
         <RecipeDetailModal
           recipe={recipe}
           onDismiss={() => setShowDetail(false)}
-          onEdit={() => { setShowDetail(false); setShowEdit(true); }}
-          onDelete={handleDelete}
+          onEdit={() => { if (isGuest) { setShowDetail(false); onAuthRequired(); return; } setShowDetail(false); setShowEdit(true); }}
+          onDelete={() => { if (isGuest) { setShowDetail(false); onAuthRequired(); return; } handleDelete(); }}
           isDeleting={isDeleting}
         />
       )}

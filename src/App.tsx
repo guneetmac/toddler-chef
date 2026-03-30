@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { AuthPage } from './components/AuthPage';
 import { Dashboard } from './components/Dashboard';
 
 function AppContent() {
   const { session, isLoading } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
 
   if (isLoading) {
     return (
@@ -13,9 +15,11 @@ function AppContent() {
     );
   }
 
-  if (!session) return <AuthPage />;
+  if (showAuth && !session) {
+    return <AuthPage onBack={() => setShowAuth(false)} />;
+  }
 
-  return <Dashboard />;
+  return <Dashboard isGuest={!session} onAuthRequired={() => setShowAuth(true)} />;
 }
 
 export default function App() {

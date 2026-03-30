@@ -12,6 +12,8 @@ interface ChatWidgetProps {
   recipes: Recipe[];
   selectedStaples: string[];
   onImportRecipe: (data: { url: string; text: string; structured: any }) => void;
+  isGuest: boolean;
+  onAuthRequired: () => void;
 }
 
 interface ParsedRecipe {
@@ -68,7 +70,7 @@ function parseRecipeFromResponse(text: string): ParsedRecipe | null {
   return { name: title, description: summary, totalTimeMinutes: time, ingredients, steps };
 }
 
-export function ChatWidget({ recipes, selectedStaples, onImportRecipe }: ChatWidgetProps) {
+export function ChatWidget({ recipes, selectedStaples, onImportRecipe, isGuest, onAuthRequired }: ChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showGreeting, setShowGreeting] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -141,7 +143,7 @@ export function ChatWidget({ recipes, selectedStaples, onImportRecipe }: ChatWid
             </div>
           )}
           <button
-            onClick={() => { setIsOpen(true); setShowGreeting(false); }}
+            onClick={() => { if (isGuest) { onAuthRequired(); return; } setIsOpen(true); setShowGreeting(false); }}
             className="w-14 h-14 bg-sage-600 hover:bg-sage-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all flex-shrink-0"
             aria-label="Open AI Chat"
           >

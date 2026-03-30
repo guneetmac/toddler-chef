@@ -10,7 +10,7 @@ import { ImportModal } from './ImportModal';
 import { ChatWidget } from './ChatWidget';
 import type { Recipe, Category, MealType } from '../types/recipe';
 
-export function Dashboard() {
+export function Dashboard({ isGuest, onAuthRequired }: { isGuest: boolean; onAuthRequired: () => void }) {
   const { user } = useAuth();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -226,14 +226,25 @@ export function Dashboard() {
             Quick Recipes for Busy Parents
           </p>
           <div className="flex items-center justify-end px-4 mt-2 gap-3">
-            <span className="text-sm text-sage-600">{user?.email}</span>
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-500 transition-colors"
-            >
-              <LogOut size={16} />
-              Sign out
-            </button>
+            {isGuest ? (
+              <button
+                onClick={onAuthRequired}
+                className="flex items-center gap-1.5 text-sm font-semibold text-white bg-sage-600 hover:bg-sage-700 px-4 py-1.5 rounded-xl transition-colors"
+              >
+                Sign in / Register
+              </button>
+            ) : (
+              <>
+                <span className="text-sm text-sage-600">{user?.email}</span>
+                <button
+                  onClick={() => supabase.auth.signOut()}
+                  className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-500 transition-colors"
+                >
+                  <LogOut size={16} />
+                  Sign out
+                </button>
+              </>
+            )}
           </div>
         </header>
 
@@ -241,7 +252,7 @@ export function Dashboard() {
           {/* Action buttons */}
           <div className="flex items-center gap-2 mb-3">
             <button
-              onClick={() => { setShowImport(v => !v); setShowFilters(false); }}
+              onClick={() => { if (isGuest) { onAuthRequired(); return; } setShowImport(v => !v); setShowFilters(false); }}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all shadow-sm ${
                 showImport ? 'bg-warmOrange-500 text-white' : 'bg-white text-gray-600 hover:bg-warmOrange-50 border border-gray-200'
               }`}
@@ -401,7 +412,7 @@ export function Dashboard() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                 {filteredRecipes.map((recipe) => (
-                  <RecipeCard key={recipe.id} recipe={recipe} onUpdated={fetchRecipes} />
+                  <RecipeCard key={recipe.id} recipe={recipe} onUpdated={fetchRecipes} isGuest={isGuest} onAuthRequired={onAuthRequired} />
                 ))}
               </div>
             </>
@@ -421,6 +432,8 @@ export function Dashboard() {
         recipes={recipes}
         selectedStaples={selectedStaples}
         onImportRecipe={(data) => setImportData(data)}
+        isGuest={isGuest}
+        onAuthRequired={onAuthRequired}
       />
     </div>
   );

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ChefHat, Check, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-export function AuthPage() {
+export function AuthPage({ onBack }: { onBack?: () => void }) {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -121,6 +121,11 @@ export function AuthPage() {
           <h1 className="text-4xl md:text-6xl font-black text-sage-800">Toddler Chef</h1>
         </div>
         <p className="text-xl text-sage-600 font-bold">Quick Recipes for Busy Parents</p>
+        {onBack && (
+          <button onClick={onBack} className="mt-3 text-sm text-sage-500 hover:text-sage-700 underline">
+            ← Continue browsing without signing in
+          </button>
+        )}
       </header>
 
       <div className="flex-1 flex items-start justify-center px-4">
