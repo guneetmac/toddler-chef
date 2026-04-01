@@ -27,6 +27,16 @@ export function LinkParser({ onImportData }: LinkParserProps) {
   const [scrapeError, setScrapeError] = useState('');
   const [copied, setCopied] = useState(false);
 
+  const socialMediaWarning = (() => {
+    try {
+      const hostname = new URL(importUrl.trim()).hostname;
+      if (hostname.includes('facebook.com') || hostname.includes('instagram.com')) {
+        return 'Facebook and Instagram require login — ingredients won\'t extract correctly. Use Auto Import from the open page instead, or paste the recipe text manually below.';
+      }
+    } catch { /* invalid URL, ignore */ }
+    return '';
+  })();
+
   const handleImportUrl = async () => {
     const trimmed = importUrl.trim();
     if (!trimmed || (!trimmed.startsWith('http://') && !trimmed.startsWith('https://'))) {
@@ -115,6 +125,11 @@ export function LinkParser({ onImportData }: LinkParserProps) {
               className="w-full px-4 py-3 rounded-xl border-2 border-sage-200 focus:border-sage-500 focus:outline-none text-gray-800 text-sm placeholder-gray-400"
               disabled={isScraping}
             />
+            {socialMediaWarning && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
+                ⚠️ {socialMediaWarning}
+              </div>
+            )}
             {scrapeError && <p className="text-red-500 text-sm">{scrapeError}</p>}
             <button
               onClick={handleImportUrl}

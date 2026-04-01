@@ -8,6 +8,7 @@ import { RecipeCard } from './RecipeCard';
 import { Filters } from './Filters';
 import { ImportModal } from './ImportModal';
 import { ChatWidget } from './ChatWidget';
+import { AboutModal } from './AboutModal';
 import type { Recipe, Category, MealType } from '../types/recipe';
 
 export function Dashboard({ isGuest, onAuthRequired }: { isGuest: boolean; onAuthRequired: () => void }) {
@@ -26,6 +27,7 @@ export function Dashboard({ isGuest, onAuthRequired }: { isGuest: boolean; onAut
   const [importData, setImportData] = useState<{ url: string; text: string; structured: any } | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
 
   const fetchRecipes = async () => {
     setIsLoading(true);
@@ -223,8 +225,17 @@ export function Dashboard({ isGuest, onAuthRequired }: { isGuest: boolean; onAut
             </h1>
           </div>
           <p className="text-xl text-sage-600 font-bold">
-            Quick Recipes for Busy Parents
+            Your toddler recipe collection, finally findable.
           </p>
+          <p className="text-sm text-gray-500 mt-1.5 max-w-sm mx-auto leading-relaxed">
+            Import from Instagram, TikTok, or any recipe site. Filter by time, what's in your pantry, allergens, and more.
+          </p>
+          <button
+            onClick={() => setShowAbout(true)}
+            className="mt-2 text-xs text-sage-600 hover:text-sage-800 underline underline-offset-2 font-medium"
+          >
+            How does this work?
+          </button>
           <div className="flex items-center justify-end px-4 mt-2 gap-3">
             {isGuest ? (
               <button
@@ -435,6 +446,7 @@ export function Dashboard({ isGuest, onAuthRequired }: { isGuest: boolean; onAut
         isGuest={isGuest}
         onAuthRequired={onAuthRequired}
       />
+      {showAbout && <AboutModal onDismiss={() => setShowAbout(false)} />}
     </div>
   );
 }

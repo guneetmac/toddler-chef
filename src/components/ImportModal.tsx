@@ -50,6 +50,11 @@ export function ImportModal({ importUrl, importText, structured, onComplete, onD
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const DEFAULT_ITEMS = ['Eggs', 'Spinach', 'Cheese', 'Tomato', 'Olive Oil'];
+  const hasDefaultIngredients = !structured && extracted !== null &&
+    extracted.ingredients.length === DEFAULT_ITEMS.length &&
+    extracted.ingredients.every(i => DEFAULT_ITEMS.includes(i.item));
+
   const preview = importText
     ? importText.substring(0, 200) + (importText.length > 200 ? '...' : '')
     : importUrl;
@@ -109,6 +114,12 @@ export function ImportModal({ importUrl, importText, structured, onComplete, onD
         <div className="bg-gray-50 rounded-xl p-3 mb-4 text-sm text-gray-600 max-h-32 overflow-y-auto">
           {preview}
         </div>
+
+        {hasDefaultIngredients && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 text-sm text-amber-800">
+            ⚠️ Ingredients couldn't be extracted from this page (login required). Placeholder ingredients have been added — <strong>edit the recipe after saving</strong> to add the real ones.
+          </div>
+        )}
 
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
