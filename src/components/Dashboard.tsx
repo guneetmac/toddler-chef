@@ -225,7 +225,7 @@ export function Dashboard({ isGuest, onAuthRequired }: { isGuest: boolean; onAut
             </h1>
           </div>
           <p className="text-xl text-sage-600 font-bold">
-            Your toddler recipe collection, finally findable.
+            Your toddler recipe collection, finally searchable.
           </p>
           <p className="text-sm text-gray-500 mt-1.5 max-w-sm mx-auto leading-relaxed">
             Import from Instagram, TikTok, or any recipe site. Filter by time, what's in your pantry, allergens, and more.
