@@ -82,8 +82,9 @@ export function Dashboard({ isGuest, onAuthRequired }: { isGuest: boolean; onAut
       if (!searchText.includes(q)) return false;
     }
 
-    if (selectedCategory !== 'all' && recipe.category !== selectedCategory) {
-      return false;
+    if (selectedCategory !== 'all') {
+      const recipeCategories = recipe.categories?.length ? recipe.categories : [recipe.category];
+      if (!recipeCategories.includes(selectedCategory)) return false;
     }
 
     if (panicFilter === 'under-10' && recipe.prep_time > 10) {

@@ -32,7 +32,8 @@ export function RecipeCard({ recipe, onUpdated, isGuest, onAuthRequired }: Recip
     onUpdated();
   };
 
-  const cat = CAT[recipe.category] ?? CAT.dinner;
+  const recipeCategories = recipe.categories?.length ? recipe.categories : [recipe.category];
+  const cat = CAT[recipeCategories[0]] ?? CAT.dinner;
   const tags = (recipe.staple_tags ?? []).slice(0, 3);
 
   return (
@@ -46,10 +47,18 @@ export function RecipeCard({ recipe, onUpdated, isGuest, onAuthRequired }: Recip
           className={`${cat.bg} w-14 flex flex-col items-center justify-center gap-1 shrink-0 cursor-pointer py-4`}
           onClick={() => setShowDetail(true)}
         >
-          <span className="text-2xl leading-none">{cat.emoji}</span>
-          <span className="text-white/80 text-[9px] font-bold uppercase tracking-wider rotate-0">
-            {cat.label.slice(0, 3)}
-          </span>
+          {recipeCategories.length > 1 ? (
+            recipeCategories.map(c => (
+              <span key={c} className="text-lg leading-none">{CAT[c]?.emoji ?? '🍽️'}</span>
+            ))
+          ) : (
+            <>
+              <span className="text-2xl leading-none">{cat.emoji}</span>
+              <span className="text-white/80 text-[9px] font-bold uppercase tracking-wider">
+                {cat.label.slice(0, 3)}
+              </span>
+            </>
+          )}
         </div>
 
         {/* Content */}

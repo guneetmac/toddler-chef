@@ -3,6 +3,12 @@ import { X, Plus, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { Recipe, Category } from '../types/recipe';
 
+function toggleCategory(current: Category[], value: Category): Category[] {
+  return current.includes(value)
+    ? current.filter(c => c !== value)
+    : [...current, value];
+}
+
 interface EditRecipeModalProps {
   recipe: Recipe;
   onSaved: () => void;
@@ -18,7 +24,9 @@ const CATEGORIES: { value: Category; label: string; icon: string }[] = [
 
 export function EditRecipeModal({ recipe, onSaved, onDismiss }: EditRecipeModalProps) {
   const [title, setTitle] = useState(recipe.title);
-  const [category, setCategory] = useState<Category>(recipe.category);
+  const [categories, setCategories] = useState<Category[]>(
+    recipe.categories?.length ? recipe.categories as Category[] : [recipe.category]
+  );
   const [summary, setSummary] = useState(recipe.one_sentence_summary ?? '');
   const [prepTime, setPrepTime] = useState(String(recipe.prep_time));
   const [ingredients, setIngredients] = useState<string[]>(
@@ -55,7 +63,8 @@ export function EditRecipeModal({ recipe, onSaved, onDismiss }: EditRecipeModalP
         .from('recipes')
         .update({
           title: title.trim(),
-          category,
+          category: categories[0] ?? recipe.category,
+          categories,
           one_sentence_summary: summary.trim() || null,
           prep_time: time,
           difficulty_tier: difficulty,
@@ -98,14 +107,17 @@ export function EditRecipeModal({ recipe, onSaved, onDismiss }: EditRecipeModalP
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Category</label>
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Category
+              <span className="ml-2 text-xs font-normal text-sage-600">(select all that apply)</span>
+            </label>
             <div className="grid grid-cols-4 gap-2">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat.value}
-                  onClick={() => setCategory(cat.value)}
+                  onClick={() => setCategories(prev => toggleCategory(prev, cat.value))}
                   className={`flex flex-col items-center gap-1 py-2 rounded-xl font-semibold text-xs transition-all ${
-                    category === cat.value
+                    categories.includes(cat.value)
                       ? 'bg-sage-600 text-white shadow-md'
                       : 'bg-gray-100 text-gray-700 hover:bg-sage-50'
                   }`}
@@ -115,6 +127,9 @@ export function EditRecipeModal({ recipe, onSaved, onDismiss }: EditRecipeModalP
                 </button>
               ))}
             </div>
+            {categories.length === 0 && (
+              <p className="text-xs text-red-500 mt-1">Select at least one category</p>
+            )}
           </div>
 
           {/* Summary */}
@@ -185,7 +200,7 @@ export function EditRecipeModal({ recipe, onSaved, onDismiss }: EditRecipeModalP
           </button>
           <button
             onClick={handleSave}
-            disabled={isSaving}
+            disabled={isSaving || categories.length === 0}
             className="flex-1 py-3 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}

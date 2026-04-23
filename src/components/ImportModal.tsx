@@ -5,6 +5,12 @@ import { extractRecipe } from '../lib/recipeExtractor';
 import { guessCategory } from '../lib/categoryGuesser';
 import type { Category } from '../types/recipe';
 
+function toggleCategory(current: Category[], value: Category): Category[] {
+  return current.includes(value)
+    ? current.filter(c => c !== value)
+    : [...current, value];
+}
+
 interface StructuredRecipe {
   name: string;
   description: string;
@@ -46,7 +52,7 @@ export function ImportModal({ importUrl, importText, structured, onComplete, onD
   const initialTitle = structured?.name ?? extracted?.recipe_name ?? '';
   const guessed = guessCategory(importText || importUrl);
   const [title, setTitle] = useState(initialTitle);
-  const [category, setCategory] = useState<Category>(guessed);
+  const [categories, setCategories] = useState<Category[]>([guessed]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -85,7 +91,8 @@ export function ImportModal({ importUrl, importText, structured, onComplete, onD
         one_sentence_summary: structured?.description || extracted?.one_sentence_summary || '',
         staple_tags: stapleTags,
         steps: structured?.steps ?? extracted?.steps ?? [],
-        category,
+        category: categories[0] ?? 'snacks',
+        categories,
         meal_type: null,
       }]);
 
@@ -137,15 +144,15 @@ export function ImportModal({ importUrl, importText, structured, onComplete, onD
         <div className="mb-4">
           <p className="text-sm font-medium text-gray-700 mb-2">
             Category
-            <span className="ml-2 text-xs text-sage-600 font-normal">(guessed from content — change if needed)</span>
+            <span className="ml-2 text-xs text-sage-600 font-normal">(select all that apply)</span>
           </p>
           <div className="grid grid-cols-2 gap-2">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.value}
-                onClick={() => setCategory(cat.value)}
+                onClick={() => setCategories(prev => toggleCategory(prev, cat.value))}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all ${
-                  category === cat.value
+                  categories.includes(cat.value)
                     ? 'bg-sage-600 text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-sage-50'
                 }`}
@@ -155,13 +162,16 @@ export function ImportModal({ importUrl, importText, structured, onComplete, onD
               </button>
             ))}
           </div>
+          {categories.length === 0 && (
+            <p className="text-xs text-red-500 mt-1">Select at least one category</p>
+          )}
         </div>
 
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
         <button
           onClick={handleSave}
-          disabled={isSaving}
+          disabled={isSaving || categories.length === 0}
           className="w-full bg-warmOrange-500 hover:bg-warmOrange-600 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving ? 'Saving...' : 'Save Recipe'}

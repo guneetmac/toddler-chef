@@ -5,6 +5,7 @@ export interface Recipe {
   prep_time: number;
   ingredients: string[];
   category: 'breakfast' | 'lunch' | 'dinner' | 'snacks';
+  categories: string[];
   meal_type: MealType | null;
   created_at: string;
   difficulty_tier: 'Quick' | 'Medium' | 'Project';
