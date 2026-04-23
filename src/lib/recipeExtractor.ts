@@ -94,18 +94,7 @@ function extractIngredients(text: string): Array<{ item: string; quantity: strin
     }
   }
 
-  return ingredients.length > 0 ? ingredients : generateDefaultIngredients();
-}
-
-function generateDefaultIngredients(): Array<{ item: string; quantity: string }> {
-  const defaults = [
-    { item: 'Eggs', quantity: '3' },
-    { item: 'Spinach', quantity: '1 cup' },
-    { item: 'Cheese', quantity: '1/2 cup' },
-    { item: 'Tomato', quantity: '1' },
-    { item: 'Olive Oil', quantity: '1 tbsp' }
-  ];
-  return defaults;
+  return ingredients;
 }
 
 function findStapleTags(text: string, ingredients: Array<{ item: string; quantity: string }>): string[] {
@@ -158,13 +147,16 @@ function generateRecipeName(text: string): string {
 }
 
 function generateSummary(recipeName: string, ingredients: Array<{ item: string; quantity: string }>, staples: string[]): string {
-  const topIngredients = ingredients.slice(0, 2).map(i => i.item.toLowerCase()).join(' and ');
   const healthBenefit = staples.includes('Spinach') ? 'iron-rich' :
                        staples.includes('Sweet Potato') ? 'nutrient-packed' :
                        staples.includes('Eggs') ? 'protein-packed' :
                        'nutritious';
 
-  return `A ${healthBenefit} ${recipeName.toLowerCase()} featuring ${topIngredients}.`;
+  const topIngredients = ingredients.slice(0, 2).map(i => i.item.toLowerCase()).join(' and ');
+  if (topIngredients) {
+    return `A ${healthBenefit} ${recipeName.toLowerCase()} featuring ${topIngredients}.`;
+  }
+  return `A ${healthBenefit} ${recipeName.toLowerCase()}.`;
 }
 
 function extractSteps(text: string): string[] {

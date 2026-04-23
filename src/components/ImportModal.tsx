@@ -56,10 +56,7 @@ export function ImportModal({ importUrl, importText, structured, onComplete, onD
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const DEFAULT_ITEMS = ['Eggs', 'Spinach', 'Cheese', 'Tomato', 'Olive Oil'];
-  const hasDefaultIngredients = !structured && extracted !== null &&
-    extracted.ingredients.length === DEFAULT_ITEMS.length &&
-    extracted.ingredients.every(i => DEFAULT_ITEMS.includes(i.item));
+  const hasDefaultIngredients = !structured && extracted !== null && extracted.ingredients.length === 0;
 
   const preview = importText
     ? importText.substring(0, 200) + (importText.length > 200 ? '...' : '')
