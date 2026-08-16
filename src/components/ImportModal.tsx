@@ -6,9 +6,12 @@ import { guessCategory } from '../lib/categoryGuesser';
 import type { Category } from '../types/recipe';
 
 function toggleCategory(current: Category[], value: Category): Category[] {
-  return current.includes(value)
-    ? current.filter(c => c !== value)
-    : [...current, value];
+  if (current.includes(value)) {
+    // don't allow deselecting the last category
+    if (current.length === 1) return current;
+    return current.filter(c => c !== value);
+  }
+  return [...current, value];
 }
 
 interface StructuredRecipe {
@@ -159,16 +162,13 @@ export function ImportModal({ importUrl, importText, structured, onComplete, onD
               </button>
             ))}
           </div>
-          {categories.length === 0 && (
-            <p className="text-xs text-red-500 mt-1">Select at least one category</p>
-          )}
         </div>
 
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
         <button
           onClick={handleSave}
-          disabled={isSaving || categories.length === 0}
+          disabled={isSaving}
           className="w-full bg-warmOrange-500 hover:bg-warmOrange-600 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving ? 'Saving...' : 'Save Recipe'}

@@ -4,9 +4,11 @@ import { supabase } from '../lib/supabase';
 import type { Recipe, Category } from '../types/recipe';
 
 function toggleCategory(current: Category[], value: Category): Category[] {
-  return current.includes(value)
-    ? current.filter(c => c !== value)
-    : [...current, value];
+  if (current.includes(value)) {
+    if (current.length === 1) return current;
+    return current.filter(c => c !== value);
+  }
+  return [...current, value];
 }
 
 interface EditRecipeModalProps {
@@ -127,9 +129,6 @@ export function EditRecipeModal({ recipe, onSaved, onDismiss }: EditRecipeModalP
                 </button>
               ))}
             </div>
-            {categories.length === 0 && (
-              <p className="text-xs text-red-500 mt-1">Select at least one category</p>
-            )}
           </div>
 
           {/* Summary */}
@@ -200,7 +199,7 @@ export function EditRecipeModal({ recipe, onSaved, onDismiss }: EditRecipeModalP
           </button>
           <button
             onClick={handleSave}
-            disabled={isSaving || categories.length === 0}
+            disabled={isSaving}
             className="flex-1 py-3 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? 'Saving...' : 'Save Changes'}
